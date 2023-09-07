@@ -22,10 +22,10 @@ include("bcar_sim.jl")
 println("Imports completed")
 
 #Read in saved models
-feas_model = deserialize("beta_carotene/ml_models/feas_model_fru.jls")
-lam_model = deserialize("beta_carotene/ml_models/lam_model_fru.jls")
-v_in_fpp_model = deserialize("beta_carotene/ml_models/v_in_fpp_model_fru.jls")
-v_in_ipp_model = deserialize("beta_carotene/ml_models/v_in_ipp_model_fru.jls")
+feas_model = deserialize("beta_carotene/ml_models/feas_model.jls")
+lam_model = deserialize("beta_carotene/ml_models/lam_model.jls")
+v_in_fpp_model = deserialize("beta_carotene/ml_models/v_fpp_model.jls")
+v_in_ipp_model = deserialize("beta_carotene/ml_models/v_ipp_model.jls")
 println("All models read in successfully!")
 
 #Latin hypercube sample 1000 W values
