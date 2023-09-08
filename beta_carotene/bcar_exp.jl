@@ -16,16 +16,17 @@ using Serialization
 using TreeParzen
 using CSV
 using LatinHypercubeSampling
-include("../models/beta_carotene.jl")
-include("bcar_sim.jl")
+home_path = "/home/cjmerzbacher/joint-simulator/"
+include(home_path * "models/beta_carotene.jl")
+include(home_path * "beta_carotene/bcar_sim.jl")
 
 println("Imports completed")
 
 #Read in saved models
-feas_model = deserialize("./beta_carotene/ml_models/feas_model.jls")
-lam_model = deserialize("./beta_carotene/ml_models/lam_model.jls")
-v_fpp_model = deserialize("./beta_carotene/ml_models/v_fpp_model.jls")
-v_ipp_model = deserialize("./beta_carotene/ml_models/v_ipp_model.jls")
+feas_model = deserialize(home_path * "beta_carotene/ml_models/feas_model.jls")
+lam_model = deserialize(home_path * "beta_carotene/ml_models/lam_model.jls")
+v_fpp_model = deserialize(home_path * "beta_carotene/ml_models/v_fpp_model.jls")
+v_ipp_model = deserialize(home_path * "beta_carotene/ml_models/v_ipp_model.jls")
 println("All models read in successfully!")
 
 ### Run a single simulation, selecting appropriate ICs
@@ -83,17 +84,18 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters)
     end
 
     #Save out BO data and simulation data
-    CSV.write("./beta_carotene/exp_data/bo_data_1000.csv", bo_data)
-    CSV.write("./beta_carotene/exp_data/sim_fba_data_1000.csv", sim_fba_data)
-    CSV.write("./beta_carotene/exp_data/sim_ode_data_1000.csv", sim_ode_data)
-    CSV.write("./beta_carotene/exp_data/sum_data_1000.csv", sum_data)
+    CSV.write(home_path * "beta_carotene/exp_data/bo_data_1000.csv", bo_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1000.csv", sim_fba_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1000.csv", sim_ode_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sum_data_1000.csv", sum_data)
+    return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
 num_iters = 1000
 bo_iters = 100
 stable_iters = 500
 sim_iters = 86400
-lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters)
+bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters)
 
 # W = [0.1, 0.1, 0.1, 0.1]
 # fba_data, ode_data, summary = single_run(W)
