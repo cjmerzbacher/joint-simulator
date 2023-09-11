@@ -16,7 +16,8 @@ using Serialization
 using TreeParzen
 using CSV
 using LatinHypercubeSampling
-home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
+#home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
+home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
 include(home_path * "models/beta_carotene.jl")
 include(home_path * "beta_carotene/bcar_sim.jl")
 
@@ -56,7 +57,7 @@ end
 
 
 
-function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters)
+function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=true)
     #Latin hypercube sample 1000 W values
     plan, _ = LHCoptim(1000,4,1000)
     scaled_plan = scaleLHC(plan,[(0., 0.5),(0., 0.5),(0., 0.5),(0., 0.5)])
@@ -78,25 +79,26 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters)
         sim_ode_data = vcat(sim_ode_data, ode)
         sum_data = vcat(sum_data, sum)
 
-        if i%10 == 0
-            #Save out BO data and simulation data
-            CSV.write(home_path * "beta_carotene/exp_data/bo_data_1000.csv", bo_data)
-            CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1000.csv", sim_fba_data)
-            CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1000.csv", sim_ode_data)
-            CSV.write(home_path * "beta_carotene/exp_data/sum_data_1000.csv", sum_data)
+        if i%10 == 0 
+            if save_data
+                #Save out BO data and simulation data
+                CSV.write(home_path * "beta_carotene/exp_data/bo_data_1000.csv", bo_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1000.csv", sim_fba_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1000.csv", sim_ode_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sum_data_1000.csv", sum_data)
+            end
         end
     end
-
     
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-num_iters = 1000
+num_iters = 1
 bo_iters = 100
 stable_iters = 500
 sim_iters = 86400
-bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters)
+bo_data, sim_ode_data, sim_fba_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, false)
 
 # W = [0.1, 0.1, 0.1, 0.1]
-# fba_data, ode_data, summary = single_run(W)
+# fba_data, ode_data, summary = single_run(W, bo_iters, stable_iters, sim_iters)
 # print(summary)
