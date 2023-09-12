@@ -42,9 +42,9 @@ function fba_loop(N, W, u0, warmup_flag=0)
         flux_data = DataFrame("v_p" => [v_p])
         #Predict new v_in, lam using ML model
         lam = predict(lam_model, flux_data)[1]
-        v_in = predict(v_in_model, fba_df)[1]
-        v_fpp =  predict(v_fpp_model, fba_df)[1]
-        v_ipp = predict(v_ipp_model, fba_df)[1]
+        v_in = predict(v_in_model, flux_data)[1]
+        v_fpp =  predict(v_fpp_model, flux_data)[1]
+        v_ipp = predict(v_ipp_model, flux_data)[1]
 
         p = [lam, v_in, v_fpp, v_ipp, p[5]] 
 

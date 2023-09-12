@@ -88,18 +88,22 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=tru
             end
         end
     end
-    
+    #Save out BO data and simulation data
+    CSV.write(home_path * "beta_carotene/exp_data/bo_data_1000.csv", bo_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1000.csv", sim_fba_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1000.csv", sim_ode_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sum_data_1000.csv", sum_data)
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-num_iters = 25
+num_iters = 150
 bo_iters = 100
 stable_iters = 500
 sim_iters = 86400
 bo_data, sim_ode_data, sim_fba_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, true)
 
-# W = [0.1, 0.1, 0.1, 0.1]
-# u0 = [0.01, 0.01, 0., 0., 0., 0., 0., 0., 0., 0.]
+# W = [0.2922922922922923, 0.12362362362362363, 0.05005005005005005, 0.2502502502502503]
+# u0 = [0.733530, 0.014785, 0., 0., 0., 0., 0., 0., 0., 0.]
 # N = 100
 # ode_data, fba_data = fba_loop_noml(N, W, u0, 1)
 # plot(fba_data.lam)
