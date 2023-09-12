@@ -29,11 +29,13 @@ function gen_training_data()
         fluxes = flux_balance_analysis_dict(model, Tulip.Optimizer, modifications = [change_constraint("pathway", lb = v_p, ub = v_p)])
         if typeof(fluxes) != Nothing
             lam = fluxes["R_BIOMASS_Ec_iML1515_core_75p37M"]
+            v_in = - fluxes["R_IPDDI"] + fluxes["R_IPDPS"]
             v_fpp = -fluxes["R_UDCPDPS"] - fluxes["R_HEMEOS"] - fluxes["R_OCTDPS"]
-            v_ipp = -8.0*fluxes["R_UDCPDPS"] -5.0*fluxes["R_OCTDPS"] - fluxes["R_IPDDI"] - fluxes["R_DMATT"] + fluxes["R_IPDPS"]
-            training_data = vcat(training_data, DataFrame("v_p" => [v_p], "v_erg20" => [fluxes["R_GRTT"]], "lam" => [lam], "v_fpp" => [v_fpp], "v_ipp" => [v_ipp], "feas" => [1]))
+            v_ipp = -8.0*fluxes["R_UDCPDPS"] -5.0*fluxes["R_OCTDPS"] - fluxes["R_DMATT"]
+
+            training_data = vcat(training_data, DataFrame("v_p" => [v_p], "v_in" => [v_in], "lam" => [lam], "v_fpp" => [v_fpp], "v_ipp" => [v_ipp], "feas" => [1]))
         else
-            training_data = vcat(training_data, DataFrame("v_p" => [v_p], "v_erg20" => [NaN], "lam" => [NaN], "v_fpp" => [NaN], "v_ipp" => [NaN], "feas" => [0]))
+            training_data = vcat(training_data, DataFrame("v_p" => [v_p], "v_in" => [NaN], "lam" => [NaN], "v_fpp" => [NaN], "v_ipp" => [NaN], "feas" => [0]))
         end
     end
     println("Completed training data generation...")
@@ -44,6 +46,7 @@ end
 ###Train ML models on training data
 function train_ml_models(data)
     #Train ML models to predict feasibility
+    replace!(data.v_in, NaN => -1)
     replace!(data.v_fpp, NaN => -1)
     replace!(data.v_ipp, NaN => -1)
     replace!(data.lam, NaN => -1)
@@ -77,6 +80,17 @@ function train_ml_models(data)
     feas_train_data = train_data[feas_train_indices[1], :]
     feas_test_indices = [findall(x -> x == 1, test_pred_class)] 
     feas_test_data = test_data[feas_test_indices[1], :]
+
+    #Train a linear model to predict v_fpp
+    println("Predicting FPP influx...")
+    v_in_model = fit(LinearModel, @formula(v_in~v_p), feas_train_data)
+
+    #Compute training accuracy
+    train_pred_in = predict(v_in_model, feas_train_data)
+    mse = (mean(feas_train_data.v_in - train_pred_in).^2)
+    r2_model = r2(v_in_model)
+    println("MSE on training set: $mse")
+    println("Model R^2: $r2_model")
 
     #Train a linear model to predict v_fpp
     println("Predicting FPP influx...")
@@ -116,15 +130,16 @@ function train_ml_models(data)
     mse = (mean(feas_test_data.lam - test_pred).^2)
     println("MSE on test set: $mse")
 
+    serialize("beta_carotene/ml_models/v_in_model.jls", v_in_model)
     serialize("beta_carotene/ml_models/v_fpp_model.jls", v_fpp_model)
     serialize("beta_carotene/ml_models/v_ipp_model.jls", v_ipp_model)
     serialize("beta_carotene/ml_models/lam_model.jls", lam_model)
     serialize("beta_carotene/ml_models/feas_model.jls", feas_model)
     println("All models saved to JLS files...")
-    return v_fpp_model, v_ipp_model, lam_model, feas_model
+    return v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model
 end
 
 #MAIN
 training_data = gen_training_data()
-v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(training_data)
+v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(training_data)
 println("SCRIPT COMPLETE")

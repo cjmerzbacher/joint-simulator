@@ -26,6 +26,7 @@ println("Imports completed")
 #Read in saved models
 feas_model = deserialize(home_path * "beta_carotene/ml_models/feas_model.jls")
 lam_model = deserialize(home_path * "beta_carotene/ml_models/lam_model.jls")
+v_in_model = deserialize(home_path * "beta_carotene/ml_models/v_in_model.jls")
 v_fpp_model = deserialize(home_path * "beta_carotene/ml_models/v_fpp_model.jls")
 v_ipp_model = deserialize(home_path * "beta_carotene/ml_models/v_ipp_model.jls")
 println("All models read in successfully!")
@@ -54,8 +55,6 @@ function single_run(W, bo_iters, stable_iters, sim_iters)
     summary = DataFrame("w1" => [W[1]], "w2" => [W[2]], "w3" => [W[3]], "w4" => [W[4]], "final_lam" => [final_lam], "delta_lam" => [0.65 - min_lam], "w_tot" => [tot_w], "bcar_tot" => [bcar_tot], "objmin" => [objmin])
     return bo_data, fba_data, ode_data, summary
 end
-
-
 
 function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=true)
     #Latin hypercube sample 1000 W values
@@ -93,12 +92,16 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=tru
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-num_iters = 1
+num_iters = 25
 bo_iters = 100
 stable_iters = 500
 sim_iters = 86400
-bo_data, sim_ode_data, sim_fba_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, false)
+bo_data, sim_ode_data, sim_fba_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, true)
 
 # W = [0.1, 0.1, 0.1, 0.1]
-# fba_data, ode_data, summary = single_run(W, bo_iters, stable_iters, sim_iters)
-# print(summary)
+# u0 = [0.01, 0.01, 0., 0., 0., 0., 0., 0., 0., 0.]
+# N = 100
+# ode_data, fba_data = fba_loop_noml(N, W, u0, 1)
+# plot(fba_data.lam)
+# plot(fba_data.v_fpp)
+# plot(ode_data.v_p)

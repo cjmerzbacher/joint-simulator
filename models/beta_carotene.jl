@@ -11,25 +11,21 @@ function bc_params(param_name)
     "km_crtB" => 0.01682, #[mM] Brenda
     "km_crtI" => 9.179, #[mM] Brenda
     "km_crtY" => 0.035, #[mM] Brenda
-    "erg20" => 5., #[mM], semi-arbitrary at this point
-    "kcat_erg20" => 0.49 * 60 * 60, #[1/s] Brenda
-    "km_erg20" => 0.043 #[mM] Brenda
     )
     return params[param_name]
 end
 
 function beta_carotene(du, u, p, t)
-    lam, v_fpp, v_ipp, W = p
+    lam, v_in, v_fpp, v_ipp, W = p
     fpp, ipp, ggp, phy, lyc, bcar, crtE, crtB, crtI, crtY = u
     k_crtE, k_crtB, k_crtI, k_crtY = W
-    v_erg20 = bc_params("erg20") * michaelismenten(ipp, bc_params("kcat_erg20"), bc_params("km_erg20"))
     v_crtE = crtE * michaelismenten_dual(fpp, ipp, bc_params("kcat_crtE"), bc_params("km_crtE_fpp"), bc_params("km_crtE_ipp"))
     v_crtB = crtB * michaelismenten(ggp, bc_params("kcat_crtB"), bc_params("km_crtB"))
     v_crtI = crtI * michaelismenten(phy, bc_params("kcat_crtI"), bc_params("km_crtI"))
     v_crtY = crtY * michaelismenten(lyc, bc_params("kcat_crtY"), bc_params("km_crtY"))
 
-    du[1] = v_erg20 + v_fpp - v_crtE - lam*fpp #fpp
-    du[2] = v_ipp - v_erg20 - v_crtE - lam*ipp #ipp
+    du[1] = -v_fpp - lam*fpp #fpp
+    du[2] = -v_ipp - v_fpp + v_in - 2*v_crtE - lam*ipp #ipp
     du[3] = v_crtE - v_crtB - lam*ggp #ggp
     du[4] = v_crtB - v_crtI - lam*phy #phy
     du[5] = v_crtI - v_crtY - lam*lyc #lyc
