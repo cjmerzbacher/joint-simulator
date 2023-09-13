@@ -5,6 +5,7 @@ using DataFrames
 using Tulip
 using Plots
 using Colors
+using ColorSchemes
 using ModelingToolkit
 using Statistics
 using GLM
@@ -30,6 +31,12 @@ v_in_model = deserialize(home_path * "beta_carotene/ml_models/v_in_model.jls")
 v_fpp_model = deserialize(home_path * "beta_carotene/ml_models/v_fpp_model.jls")
 v_ipp_model = deserialize(home_path * "beta_carotene/ml_models/v_ipp_model.jls")
 println("All models read in successfully!")
+
+#Latin hypercube sample 1000 W values
+plan, _ = LHCoptim(1000,4,1000)
+global scaled_plan = scaleLHC(plan,[(0., 0.5),(0., 0.5),(0., 0.5),(0., 0.5)])
+println("LHC Sampling complete!")
+
 
 ### Run a single simulation, selecting appropriate ICs
 function single_run(W, bo_iters, stable_iters, sim_iters)
@@ -57,12 +64,6 @@ function single_run(W, bo_iters, stable_iters, sim_iters)
 end
 
 function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=true)
-    #Latin hypercube sample 1000 W values
-    plan, _ = LHCoptim(1000,4,1000)
-    scaled_plan = scaleLHC(plan,[(0., 0.5),(0., 0.5),(0., 0.5),(0., 0.5)])
-
-    println("LHC Sampling complete!")
-
     global bo_data = DataFrame()
     global sim_fba_data = DataFrame()
     global sim_ode_data = DataFrame()
@@ -96,16 +97,29 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=tru
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-num_iters = 150
-bo_iters = 100
-stable_iters = 500
-sim_iters = 86400
-bo_data, sim_ode_data, sim_fba_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, true)
+# num_iters = 1
+# bo_iters = 1000
+# stable_iters = 500
+# sim_iters = 500
+# bo_data, sim_ode_data, sim_fba_data, sum_data = single_run(W, bo_iters, stable_iters, sim_iters) 
+# nrow(sim_fba_data)
+# #lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, true)
 
-# W = [0.2922922922922923, 0.12362362362362363, 0.05005005005005005, 0.2502502502502503]
-# u0 = [0.733530, 0.014785, 0., 0., 0., 0., 0., 0., 0., 0.]
-# N = 100
-# ode_data, fba_data = fba_loop_noml(N, W, u0, 1)
-# plot(fba_data.lam)
-# plot(fba_data.v_fpp)
-# plot(ode_data.v_p)
+
+function sim_plot(W, N, u0)
+    ode_data, fba_data = fba_loop(N, W, u0, 1)
+    palette= ColorSchemes.tab10.colors
+    p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
+    p2 = plot(fba_data.time, fba_data.v_in,lw=3, label="Influx", color=palette[1], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+    p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+    p4 = plot(fba_data.time, [fba_data.v_fpp fba_data.v_ipp],  label=["FPP" "IPP"], color=[palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+    p5 = plot(ode_data.time, [ode_data.fpp ode_data.ipp],lw=3,label=["FPP" "IPP"], color=[palette[5] palette[9]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+    p6 = plot(ode_data.time, ode_data.bcar, lw=3, label="Beta-carotene", color=palette[7], xlabel="time (hrs)", ylabel="Concentration (mM)")
+    println("Number of valid simulation iterations: ", nrow(fba_data))
+    plot(p1, p2, p3, p4, p5, p6, layout=(3,2), size=(700, 700))
+end
+
+W = [0.0000001, 0.0000001, 0.0000001, 0.0000001]
+N = 10000
+u0 = [10, 10, 0., 0., 0., 0., 0., 0., 0., 0.]
+sim_plot(W, N, u0)
