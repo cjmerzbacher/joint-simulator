@@ -1,2 +1,2 @@
 *.csv
-!*/beta_carotene/exp_data/lhc.csv
+!/beta_carotene/exp_data/lhc.csv
