@@ -25,7 +25,7 @@ function beta_carotene(du, u, p, t)
     v_crtY = crtY * michaelismenten(lyc, bc_params("kcat_crtY"), bc_params("km_crtY"))
 
     du[1] = -v_fpp - lam*fpp #fpp
-    du[2] = -v_ipp - v_fpp + v_in - 2*v_crtE - lam*ipp #ipp
+    du[2] = - v_ipp - v_fpp + v_in - 2*v_crtE - lam*ipp #ipp
     du[3] = v_crtE - v_crtB - lam*ggp #ggp
     du[4] = v_crtB - v_crtI - lam*phy #phy
     du[5] = v_crtI - v_crtY - lam*lyc #lyc
@@ -44,3 +44,4 @@ function native_metabolism(du, u, p, t)
     du[1] = v_erg20 + v_fpp - lam*fpp
     du[2] = v_ipp - v_erg20 - lam*ipp
 end
+

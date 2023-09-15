@@ -81,7 +81,7 @@ function train_ml_models(data)
     feas_test_indices = [findall(x -> x == 1, test_pred_class)] 
     feas_test_data = test_data[feas_test_indices[1], :]
 
-    #Train a linear model to predict v_fpp
+    #Train a linear model to predict v_in
     println("Predicting FPP influx...")
     v_in_model = fit(LinearModel, @formula(v_in~v_p), feas_train_data)
 
@@ -94,7 +94,7 @@ function train_ml_models(data)
 
     #Train a linear model to predict v_fpp
     println("Predicting FPP influx...")
-    v_fpp_model = fit(LinearModel, @formula(v_ipp~v_p), feas_train_data)
+    v_fpp_model = fit(LinearModel, @formula(v_fpp~v_p), feas_train_data)
 
     #Compute training accuracy
     train_pred_fpp = predict(v_fpp_model, feas_train_data)

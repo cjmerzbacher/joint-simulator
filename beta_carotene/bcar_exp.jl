@@ -106,20 +106,19 @@ end
 # #lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, true)
 
 
-function sim_plot(W, N, u0)
-    ode_data, fba_data = fba_loop(N, W, u0, 1)
-    palette= ColorSchemes.tab10.colors
-    p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
-    p2 = plot(fba_data.time, fba_data.v_in,lw=3, label="Influx", color=palette[1], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-    p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-    p4 = plot(fba_data.time, [fba_data.v_fpp fba_data.v_ipp],  label=["FPP" "IPP"], color=[palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-    p5 = plot(ode_data.time, [ode_data.fpp ode_data.ipp],lw=3,label=["FPP" "IPP"], color=[palette[5] palette[9]], xlabel="time (hrs)", ylabel="Concentration (mM)")
-    p6 = plot(ode_data.time, ode_data.bcar, lw=3, label="Beta-carotene", color=palette[7], xlabel="time (hrs)", ylabel="Concentration (mM)")
-    println("Number of valid simulation iterations: ", nrow(fba_data))
-    plot(p1, p2, p3, p4, p5, p6, layout=(3,2), size=(700, 700))
-end
 
-W = [0.0000001, 0.0000001, 0.0000001, 0.0000001]
-N = 10000
-u0 = [10, 10, 0., 0., 0., 0., 0., 0., 0., 0.]
-sim_plot(W, N, u0)
+
+W = [0.00001, 0.0001, 0.001, 0.001]
+N = 100
+u0 = [0.7, 0.7, 0., 0., 0., 0., 0., 0., 0., 0.]
+
+ode_data, fba_data = fba_loop_noml(N, W, u0, 1)
+palette= ColorSchemes.tab10.colors
+p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
+p2 = plot(fba_data.time, fba_data.v_in,lw=3, label="Influx", color=palette[1], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+p4 = plot(fba_data.time, [fba_data.v_fpp fba_data.v_ipp],  label=["FPP" "IPP"], color=[palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+p5 = plot(ode_data.time, [ode_data.crtE ode_data.crtB ode_data.crtI ode_data.crtY],lw=3,label=["CrtE" "CrtB" "CrtI" "CrtY"], color=[palette[2] palette[3] palette[4] palette[5]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+p6 = plot(ode_data.time, [ode_data.fpp ode_data.ipp ode_data.ggp ode_data.phy ode_data.lyc ode_data.bcar], lw=3, label=["FPP" "IPP" "GGP" "Phy" "Lycopene" "Beta-carotene"], color=[palette[5] palette[9] palette[7] palette[8] palette[10] palette[1]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+println("Number of valid simulation iterations: ", nrow(fba_data))
+plot(p1, p2, p3, p4, p5, p6, layout=(3,2), size=(700, 700))
