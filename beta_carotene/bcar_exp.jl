@@ -105,9 +105,6 @@ end
 # nrow(sim_fba_data)
 # #lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, true)
 
-
-
-
 W = [0.00001, 0.0001, 0.001, 0.001]
 N = 100
 u0 = [0.7, 0.7, 0., 0., 0., 0., 0., 0., 0., 0.]
