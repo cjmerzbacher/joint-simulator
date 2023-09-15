@@ -32,10 +32,10 @@ v_fpp_model = deserialize(home_path * "beta_carotene/ml_models/v_fpp_model.jls")
 v_ipp_model = deserialize(home_path * "beta_carotene/ml_models/v_ipp_model.jls")
 println("All models read in successfully!")
 
-#Latin hypercube sample 1000 W values
-plan, _ = LHCoptim(1000,4,1000)
-global scaled_plan = scaleLHC(plan,[(0., 0.5),(0., 0.5),(0., 0.5),(0., 0.5)])
-println("LHC Sampling complete!")
+# #Latin hypercube sample 1000 W values
+# plan, _ = LHCoptim(1000,4,1000)
+# global scaled_plan = scaleLHC(plan,[(0., 0.5),(0., 0.5),(0., 0.5),(0., 0.5)])
+# println("LHC Sampling complete!")
 
 
 ### Run a single simulation, selecting appropriate ICs
@@ -70,52 +70,51 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=tru
     global sum_data = DataFrame()
     
     for i in 1:num_iters
-        print("Beginning iteration", i)
-        W = scaled_plan[i, :]
-        bo, ode, fba, sum = single_run(W, bo_iters, stable_iters, sim_iters)
+        print("Beginning iteration ", i)
+        W = values(scaled_plan[i, :])[2:5]
+        bo, fba, ode, sum = single_run(W, bo_iters, stable_iters, sim_iters)
 
         bo_data = vcat(bo_data, bo)
         sim_fba_data = vcat(sim_fba_data, fba)
         sim_ode_data = vcat(sim_ode_data, ode)
         sum_data = vcat(sum_data, sum)
 
-        if i%10 == 0 
+        if i%5 == 0 
             if save_data
                 #Save out BO data and simulation data
-                CSV.write(home_path * "beta_carotene/exp_data/bo_data_1000.csv", bo_data)
-                CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1000.csv", sim_fba_data)
-                CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1000.csv", sim_ode_data)
-                CSV.write(home_path * "beta_carotene/exp_data/sum_data_1000.csv", sum_data)
+                CSV.write(home_path * "beta_carotene/exp_data/bo_data_1.csv", bo_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1.csv", sim_fba_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1.csv", sim_ode_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sum_data_1.csv", sum_data)
             end
         end
     end
     #Save out BO data and simulation data
-    CSV.write(home_path * "beta_carotene/exp_data/bo_data_1000.csv", bo_data)
-    CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1000.csv", sim_fba_data)
-    CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1000.csv", sim_ode_data)
-    CSV.write(home_path * "beta_carotene/exp_data/sum_data_1000.csv", sum_data)
+    CSV.write(home_path * "beta_carotene/exp_data/bo_data_1.csv", bo_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1.csv", sim_fba_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1.csv", sim_ode_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sum_data_1.csv", sum_data)
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-# num_iters = 1
-# bo_iters = 1000
-# stable_iters = 500
-# sim_iters = 500
-# bo_data, sim_ode_data, sim_fba_data, sum_data = single_run(W, bo_iters, stable_iters, sim_iters) 
-# nrow(sim_fba_data)
-# #lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, true)
+num_iters = 100
+bo_iters = 100
+stable_iters = 500
+sim_iters = 86400
+scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
+bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, true)
 
-W = [0.00001, 0.0001, 0.001, 0.001]
-N = 100
-u0 = [0.7, 0.7, 0., 0., 0., 0., 0., 0., 0., 0.]
+# W = [0.00001, 0.0001, 0.001, 0.001]
+# N = 100
+# u0 = [0.7, 0.7, 0., 0., 0., 0., 0., 0., 0., 0.]
 
-ode_data, fba_data = fba_loop_noml(N, W, u0, 1)
-palette= ColorSchemes.tab10.colors
-p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
-p2 = plot(fba_data.time, fba_data.v_in,lw=3, label="Influx", color=palette[1], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-p4 = plot(fba_data.time, [fba_data.v_fpp fba_data.v_ipp],  label=["FPP" "IPP"], color=[palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-p5 = plot(ode_data.time, [ode_data.crtE ode_data.crtB ode_data.crtI ode_data.crtY],lw=3,label=["CrtE" "CrtB" "CrtI" "CrtY"], color=[palette[2] palette[3] palette[4] palette[5]], xlabel="time (hrs)", ylabel="Concentration (mM)")
-p6 = plot(ode_data.time, [ode_data.fpp ode_data.ipp ode_data.ggp ode_data.phy ode_data.lyc ode_data.bcar], lw=3, label=["FPP" "IPP" "GGP" "Phy" "Lycopene" "Beta-carotene"], color=[palette[5] palette[9] palette[7] palette[8] palette[10] palette[1]], xlabel="time (hrs)", ylabel="Concentration (mM)")
-println("Number of valid simulation iterations: ", nrow(fba_data))
-plot(p1, p2, p3, p4, p5, p6, layout=(3,2), size=(700, 700))
+#ode_data, fba_data = fba_loop_noml(N, W, u0, 1)
+# palette= ColorSchemes.tab10.colors
+# p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
+# p2 = plot(fba_data.time, [fba_data.v_in fba_data.v_fpp fba_data.v_ipp],  label=["Influx" "FPP" "IPP"], color=[palette[1] palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+# p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+# p4 = plot(ode_data.time, [ode_data.crtE ode_data.crtB ode_data.crtI ode_data.crtY],lw=3,label=["CrtE" "CrtB" "CrtI" "CrtY"], color=[palette[2] palette[3] palette[4] palette[5]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+# p5 = plot(ode_data.time, [ode_data.fpp ode_data.ipp], lw=3, label=["FPP" "IPP"], color=[palette[5] palette[9]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+# p6 = plot(ode_data.time, [ode_data.ggp ode_data.phy ode_data.lyc ode_data.bcar], lw=3, label=["GGP" "Phy" "Lycopene" "Beta-carotene"], color=[palette[7] palette[8] palette[10] palette[1]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+
+# plot(p1, p2, p3, p4, p5, p6, layout=(3,2), size=(700, 700))
