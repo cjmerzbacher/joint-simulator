@@ -97,9 +97,9 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=tru
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-save_suffix='exp'
+save_suffix="long_bo"
 num_iters = 100
-bo_iters = 200
+bo_iters = 1000
 stable_iters = 500
 sim_iters = 86400
 scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
