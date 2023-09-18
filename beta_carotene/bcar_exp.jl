@@ -40,7 +40,7 @@ println("All models read in successfully!")
 
 ### Run a single simulation, selecting appropriate ICs
 function single_run(W, bo_iters, stable_iters, sim_iters)
-    fpp_best, ipp_best, objmin, bo_data = bayesopt_ics(bo_iters, stable_iters, W)
+    fpp_best, ipp_best, objmin, bo_data = bayesopt_ics(bo_iters, stable_iters, W , 10., 10.)
     if objmin > 10E4
         println("No feasible ICs found for this promoter strength matrix.")
     end
@@ -82,23 +82,23 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_data=tru
         if i%5 == 0 
             if save_data
                 #Save out BO data and simulation data
-                CSV.write(home_path * "beta_carotene/exp_data/bo_data_1.csv", bo_data)
-                CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1.csv", sim_fba_data)
-                CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1.csv", sim_ode_data)
-                CSV.write(home_path * "beta_carotene/exp_data/sum_data_1.csv", sum_data)
+                CSV.write(home_path * "beta_carotene/exp_data/bo_data_highic.csv", bo_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_highic.csv", sim_fba_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_highic.csv", sim_ode_data)
+                CSV.write(home_path * "beta_carotene/exp_data/sum_data_highic.csv", sum_data)
             end
         end
     end
     #Save out BO data and simulation data
-    CSV.write(home_path * "beta_carotene/exp_data/bo_data_1.csv", bo_data)
-    CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_1.csv", sim_fba_data)
-    CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_1.csv", sim_ode_data)
-    CSV.write(home_path * "beta_carotene/exp_data/sum_data_1.csv", sum_data)
+    CSV.write(home_path * "beta_carotene/exp_data/bo_data_highic.csv", bo_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sim_fba_data_highic.csv", sim_fba_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sim_ode_data_highic.csv", sim_ode_data)
+    CSV.write(home_path * "beta_carotene/exp_data/sum_data_highic.csv", sum_data)
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
 num_iters = 100
-bo_iters = 100
+bo_iters = 200
 stable_iters = 500
 sim_iters = 86400
 scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
