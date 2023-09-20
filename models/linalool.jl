@@ -22,7 +22,7 @@ function lnl_params(param_name)
 end
 
 function linalool(du, u, p, t)
-    lam, v_in_hmgcoa, v_out_mev, v_net_ipp, v_net_fpp, W = p
+    lam, v_in_hmgcoa, v_ipp, v_fpp, W = p
     hmgcoa, mev, ipp, dmapp, gpp, fpp, linalool, thmgr, idi, erg20, lis = u
     k_a, k_b, k_c, k_d = W #[RPU]
 
@@ -38,11 +38,11 @@ function linalool(du, u, p, t)
     v_lis_gpp = lis * michaelismenten(gpp, lnl_params("kcat_lis_gpp"), lnl_params("km_lis_gpp"))
 
     du[1] = v_in_hmgcoa - lam*hmgcoa #hmgcoa #changed from lit model where assumed constant from native metabolism, now from FBA
-    du[2] =  v_thmgr - v_mevk - v_out_mev - lam*mev #mev
-    du[3] = v_mevk + v_idi_dmapp - v_idi_ipp - v_erg20_dmapp - v_erg20_gpp - lam*ipp + v_net_ipp #ipp
+    du[2] =  v_thmgr - v_mevk - lam*mev #mev
+    du[3] = v_mevk + v_idi_dmapp - v_idi_ipp - v_erg20_dmapp - v_erg20_gpp - lam*ipp + v_ipp #ipp
     du[4] = v_idi_ipp - v_idi_dmapp - v_erg20_dmapp - lam*dmapp #dmapp
     du[5] = v_erg20_dmapp - v_erg20_gpp - v_lis_gpp - lam*gpp #gpp
-    du[6] = v_erg20_gpp - lam*fpp + v_net_fpp #fpp
+    du[6] = v_erg20_gpp - lam*fpp + v_fpp #fpp
     du[7] = v_lis_gpp - lam*linalool #linalool
     du[8] = alpha*k_a - lam*thmgr #thmgr
     du[9] = alpha*k_b - lam*idi #idi
