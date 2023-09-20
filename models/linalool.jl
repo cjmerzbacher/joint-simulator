@@ -3,8 +3,8 @@ michaelismenten(x, kcat, km) = (kcat*x)/(km+x)
 function lnl_params(param_name)
     params = Dict("kcat_thmgr_hmgcoa" => 0.0035*53.01 * 60, #[1/min -> 1/hr]
     "km_thmgr_hmgcoa" => 50 / 1000, #[uM -> mM]
-    "kcat_mevk_mev" => 0, #FILL IN
-    "km_mevk_mev" => 0, #FILL IN
+    "kcat_mevk_mev" => 0.0035*53.01 * 60, #FILL IN
+    "km_mevk_mev" => 50 / 1000, #FILL IN
     "kcat_idi_dmapp" => 456.75 * 60, #[1/min -> 1/hr]
     "km_idi_dmapp" => 43 / 1000, #[uM -> mM]
     "kcat_idi_ipp" => 20*33.352 * 60, #[1/min -> 1/hr]
