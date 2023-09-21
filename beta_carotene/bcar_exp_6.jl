@@ -103,7 +103,7 @@ bo_iters = 1000
 stable_iters = 500
 sim_iters = 86400
 scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
-scaled_plan = scaled_plan[101:1000, :]
+scaled_plan = scaled_plan[601:1000, :]
 bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_suffix, true)
 
 # W = [0.00001, 0.0001, 0.001, 0.001]
