@@ -45,3 +45,25 @@ function native_metabolism(du, u, p, t)
     du[2] = v_ipp - v_erg20 - lam*ipp
 end
 
+repression(x, k, theta, n) = k/(1+(x/theta)^n)
+
+function beta_carotene_upstream_repression(du, u, p, t)
+    lam, v_in, v_fpp, v_ipp, W = p
+    fpp, ipp, ggp, phy, lyc, bcar, crtE, crtB, crtI, crtY = u
+    k_crtE, theta_crtE, k_crtB, k_crtI, k_crtY = W
+    v_crtE = crtE * michaelismenten_dual(fpp, ipp, bc_params("kcat_crtE"), bc_params("km_crtE_fpp"), bc_params("km_crtE_ipp"))
+    v_crtB = crtB * michaelismenten(ggp, bc_params("kcat_crtB"), bc_params("km_crtB"))
+    v_crtI = crtI * michaelismenten(phy, bc_params("kcat_crtI"), bc_params("km_crtI"))
+    v_crtY = crtY * michaelismenten(lyc, bc_params("kcat_crtY"), bc_params("km_crtY"))
+
+    du[1] = -v_fpp - lam*fpp #fpp
+    du[2] = - v_ipp - v_fpp + v_in - 2*v_crtE - lam*ipp #ipp
+    du[3] = v_crtE - v_crtB - lam*ggp #ggp
+    du[4] = v_crtB - v_crtI - lam*phy #phy
+    du[5] = v_crtI - v_crtY - lam*lyc #lyc
+    du[6] = v_crtY - lam*bcar #bcar
+    du[7] = repression(bcar, k_crtE, theta_crtE, 2) - lam*crtE #crtE
+    du[8] = k_crtB - lam*crtB #crtB
+    du[9] = k_crtI - lam*crtI #crtI
+    du[10] = k_crtY - lam*crtY #crtY
+end

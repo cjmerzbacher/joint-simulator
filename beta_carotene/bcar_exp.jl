@@ -18,7 +18,7 @@ using TreeParzen
 using CSV
 using LatinHypercubeSampling
 home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
-#home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
 include(home_path * "models/beta_carotene.jl")
 include(home_path * "beta_carotene/bcar_sim.jl")
 
@@ -31,12 +31,6 @@ v_in_model = deserialize(home_path * "beta_carotene/ml_models/v_in_model.jls")
 v_fpp_model = deserialize(home_path * "beta_carotene/ml_models/v_fpp_model.jls")
 v_ipp_model = deserialize(home_path * "beta_carotene/ml_models/v_ipp_model.jls")
 println("All models read in successfully!")
-
-# #Latin hypercube sample 1000 W values
-# plan, _ = LHCoptim(1000,4,1000)
-# global scaled_plan = scaleLHC(plan,[(0., 0.5),(0., 0.5),(0., 0.5),(0., 0.5)])
-# println("LHC Sampling complete!")
-
 
 ### Run a single simulation, selecting appropriate ICs
 function single_run(W, bo_iters, stable_iters, sim_iters)
@@ -63,7 +57,7 @@ function single_run(W, bo_iters, stable_iters, sim_iters)
     return bo_data, fba_data, ode_data, summary
 end
 
-function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_suffix, save_data=true)
+function lhc_w_sweep(arch, num_iters, bo_iters, stable_iters, sim_iters, save_suffix, save_data=true)
     global bo_data = DataFrame()
     global sim_fba_data = DataFrame()
     global sim_ode_data = DataFrame()
@@ -71,7 +65,11 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_suffix, 
     
     for i in 1:num_iters
         print("Beginning iteration ", i)
-        W = values(scaled_plan[i, :])[2:5]
+        if arch == "ur"
+            W = values(ur_scaled_plan[i, :])[2:6]
+        else
+            W = values(scaled_plan[i, :])[2:5]
+        end
         bo, fba, ode, sum = single_run(W, bo_iters, stable_iters, sim_iters)
 
         bo_data = vcat(bo_data, bo)
@@ -85,37 +83,41 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_suffix, 
                 CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
                 CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
                 CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
-                CSV.write(home_path * "beta_carotene/exp_data/sum_data_"*save_suffix*".csv", sum_data)
+                CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
             end
         end
     end
-    #Save out BO data and simulation data
-    CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
-    CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
-    CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
-    CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
+    if save_data
+        #Save out BO data and simulation data
+        CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
+        CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
+        CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
+        CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
+    end
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-save_suffix="long_bo_1"
+save_suffix="ur_100"
+arch = "ur"
 num_iters = 100
 bo_iters = 1000
 stable_iters = 500
 sim_iters = 86400
-scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
-scaled_plan = scaled_plan[101:1000, :]
-bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_suffix, true)
+# scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
+# scaled_plan = scaled_plan[101:1000, :]
+ur_scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc_ur.csv", DataFrame)
+bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(arch, num_iters, bo_iters, stable_iters, sim_iters, save_suffix, true)
 
-# W = [0.00001, 0.0001, 0.001, 0.001]
+# W = [0.00001, 0.1, 0.0001, 0.001, 0.001]
 # N = 100
 # u0 = [0.7, 0.7, 0., 0., 0., 0., 0., 0., 0., 0.]
 
-#ode_data, fba_data = fba_loop_noml(N, W, u0, 1)
+# bo_data, fba_data, ode_data, summary = single_run(W, bo_iters, stable_iters, sim_iters)
 # palette= ColorSchemes.tab10.colors
 # p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
 # p2 = plot(fba_data.time, [fba_data.v_in fba_data.v_fpp fba_data.v_ipp],  label=["Influx" "FPP" "IPP"], color=[palette[1] palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-# p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-# p4 = plot(ode_data.time, [ode_data.crtE ode_data.crtB ode_data.crtI ode_data.crtY],lw=3,label=["CrtE" "CrtB" "CrtI" "CrtY"], color=[palette[2] palette[3] palette[4] palette[5]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+# p3 = plot(fba_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+# p4 = plot(fba_data.time, [ode_data.crtE ode_data.crtB ode_data.crtI ode_data.crtY],lw=3,label=["CrtE" "CrtB" "CrtI" "CrtY"], color=[palette[2] palette[3] palette[4] palette[5]], xlabel="time (hrs)", ylabel="Concentration (mM)")
 # p5 = plot(ode_data.time, [ode_data.fpp ode_data.ipp], lw=3, label=["FPP" "IPP"], color=[palette[5] palette[9]], xlabel="time (hrs)", ylabel="Concentration (mM)")
 # p6 = plot(ode_data.time, [ode_data.ggp ode_data.phy ode_data.lyc ode_data.bcar], lw=3, label=["GGP" "Phy" "Lycopene" "Beta-carotene"], color=[palette[7] palette[8] palette[10] palette[1]], xlabel="time (hrs)", ylabel="Concentration (mM)")
 

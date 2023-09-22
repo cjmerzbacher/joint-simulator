@@ -85,7 +85,7 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_suffix, 
                 CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
                 CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
                 CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
-                CSV.write(home_path * "beta_carotene/exp_data/sum_data_"*save_suffix*".csv", sum_data)
+                CSV.write(home_path * "beta_carotene/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
             end
         end
     end
@@ -97,13 +97,12 @@ function lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_suffix, 
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-save_suffix="long_bo_8"
-num_iters = 100
+save_suffix="long_bo_extra"
+num_iters = 285
 bo_iters = 1000
 stable_iters = 500
 sim_iters = 86400
-scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
-scaled_plan = scaled_plan[801:1000, :]
+scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc_notdone.csv", DataFrame)
 bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(num_iters, bo_iters, stable_iters, sim_iters, save_suffix, true)
 
 # W = [0.00001, 0.0001, 0.001, 0.001]

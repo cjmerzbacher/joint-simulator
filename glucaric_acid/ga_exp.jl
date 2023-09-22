@@ -48,11 +48,18 @@ function single_run(params, bo_iters, sim_iters)
     return bo_data, fba_data, ode_data
 end
 
-# #Run single simulation
-# A = [[0, 0, 1], [0, 0, 1]] #open loop
-# W = [[2., 3.328086, 0.000041], [2., 5.070964, 0.000227]] #Optimal from MSc work - glucaric_acid_singlearch.csv
-# params = [A, W]
-# bo_data, fba_data, ode_data = single_run(params, 100, 86400)
+#Run single simulation
+A = [[0, 0, 1], [0, 0, 1]] #open loop
+W = [[2., 3.328086, 0.000041], [2., 5.070964, 0.000227]] #Optimal from MSc work - glucaric_acid_singlearch.csv
+params = [A, W]
+bo_data, fba_data, ode_data = single_run(params, 100, 86400)
 
-# CSV.write("fba_data.csv", fba_data)
-# CSV.write("ode_data.csv", ode_data)
+palette= ColorSchemes.tab10.colors
+p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
+p2 = plot(fba_data.time, [fba_data.v_in fba_data.v_fpp fba_data.v_ipp],  label=["Influx" "FPP" "IPP"], color=[palette[1] palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+p4 = plot(ode_data.time, [ode_data.crtE ode_data.crtB ode_data.crtI ode_data.crtY],lw=3,label=["CrtE" "CrtB" "CrtI" "CrtY"], color=[palette[2] palette[3] palette[4] palette[5]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+p5 = plot(ode_data.time, [ode_data.fpp ode_data.ipp], lw=3, label=["FPP" "IPP"], color=[palette[5] palette[9]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+p6 = plot(ode_data.time, [ode_data.ggp ode_data.phy ode_data.lyc ode_data.bcar], lw=3, label=["GGP" "Phy" "Lycopene" "Beta-carotene"], color=[palette[7] palette[8] palette[10] palette[1]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+
+plot(p1, p2, p3, p4, p5, p6, layout=(3,2), size=(700, 700))

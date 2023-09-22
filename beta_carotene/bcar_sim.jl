@@ -21,7 +21,11 @@ function fba_loop(N, W, u0, warmup_flag=0)
     #println("Beginning loop...")
     for i in 1:N
         #println("Iteration ", i)
-        prob = ODEProblem(beta_carotene, u0, tspan, p)
+        if length(W) == 5
+            prob = ODEProblem(beta_carotene_upstream_repression, u0, tspan, p)
+        else
+            prob = ODEProblem(beta_carotene, u0, tspan, p)
+        end
         #Solve ODE
         sol = solve(prob, Rosenbrock23(), reltol=1e-3, abstol=1e-6, saveat=savetimes)
 
