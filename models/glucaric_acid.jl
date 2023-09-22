@@ -36,9 +36,9 @@ function glucaric_acid(du, u, p, t)
     g6p, f6p, mi, ino1, miox = u
 
     A, W, v_in, lam = p
-
-    n_ino1, theta_ino1, k_ino1 = W[1]
-    n_miox, theta_miox, k_miox = W[2]
+    
+    k_ino1, theta_ino1, k_miox, theta_miox = W
+    
     k_ino1 = k_ino1 * 60 * 60
     k_miox = k_miox * 60 * 60
 
@@ -49,8 +49,8 @@ function glucaric_acid(du, u, p, t)
     v_tm = michaelismenten(mi, ga_params("vm_t_mi"), ga_params("km_t_mi"))
     v_miox = miox * michaelismenten_substrateactivation(mi, ga_params("vm_miox"), ga_params("km_miox_mi"), ga_params("a_miox"), ga_params("ka_miox_mi"))
 
-    u_ino1_mi = sum(A[1] .* [activation(mi, k_ino1, theta_ino1, n_ino1), repression(mi, k_ino1, theta_ino1, n_ino1), k_ino1])
-    u_miox_mi = sum(A[2] .* [activation(mi, k_miox, theta_miox, n_miox), repression(mi, k_miox, theta_miox, n_miox), k_miox])
+    u_ino1_mi = sum(A[1] .* [activation(mi, k_ino1, theta_ino1, 2), repression(mi, k_ino1, theta_ino1, 2), k_ino1])
+    u_miox_mi = sum(A[2] .* [activation(mi, k_miox, theta_miox, 2), repression(mi, k_miox, theta_miox, 2), k_miox])
 
     du[1] = v_in - v_zwf - v_pgi - v_ino1 - lam*g6p
     du[2] = v_pgi + 0.5*v_zwf - v_pfk - lam*f6p

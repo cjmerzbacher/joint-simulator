@@ -30,15 +30,15 @@ v_in_model = deserialize(home_path * "glucaric_acid/ml_models/v_in_model.jls")
 println("All models read in successfully!")
 
 ### Run a single simulation, selecting appropriate ICs
-function single_run(params, bo_iters, sim_iters)
-    f6p_best, g6p_best, objmin, bo_data = warmup(bo_iters, params) 
+function single_run_ga(A_W, bo_iters, sim_iters)
+    f6p_best, g6p_best, objmin, bo_data = warmup(bo_iters, A_W) 
     if objmin > 10E4
         println("No feasible ICs found for this promoter strength matrix.")
     end
     println("Initial conditions determined, starting simulation...") 
     #Run simulation with optimal ICs 
     u0 = [f6p_best, g6p_best, 0., 0., 0.]
-    ode_data, fba_data = fba_loop(sim_iters, params, u0, 1)
+    ode_data, fba_data = fba_loop(sim_iters, A_W, u0, 1)
     println("Simulation complete!")
 
     #Append final simulation data
@@ -48,18 +48,66 @@ function single_run(params, bo_iters, sim_iters)
     return bo_data, fba_data, ode_data
 end
 
+function lhc_w_sweep(A, num_iters, bo_iters, sim_iters, save_suffix, save_data=true)
+    global bo_data = DataFrame()
+    global sim_fba_data = DataFrame()
+    global sim_ode_data = DataFrame()
+    global sum_data = DataFrame()
+    
+    for i in 1:num_iters
+        print("Beginning iteration ", i)
+        W = values(scaled_plan[i, :])[2:5]
+        A_W = [A, W]
+        bo, fba, ode, sum = single_run_ga(A_W, bo_iters, sim_iters)
+
+        bo_data = vcat(bo_data, bo)
+        sim_fba_data = vcat(sim_fba_data, fba)
+        sim_ode_data = vcat(sim_ode_data, ode)
+        sum_data = vcat(sum_data, sum)
+
+        if i%5 == 0 
+            if save_data
+                #Save out BO data and simulation data
+                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
+                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
+                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
+                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
+            end
+        end
+    end
+    if save_data
+        #Save out BO data and simulation data
+        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
+        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
+        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
+        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
+    end
+    return bo_data, sim_fba_data, sim_ode_data, sum_data
+end
+
+
 #Run single simulation
 A = [[0, 0, 1], [0, 0, 1]] #open loop
-W = [[2., 3.328086, 0.000041], [2., 5.070964, 0.000227]] #Optimal from MSc work - glucaric_acid_singlearch.csv
+scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/dc_lhc.csv", DataFrame)
+
+save_suffix="nc"
+num_iters = 2
+bo_iters = 10
+sim_iters = 10
+bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(A, num_iters, bo_iters, sim_iters, save_suffix, true)
+
+# W = [[2., 3.328086, 0.000041], [2., 5.070964, 0.000227]] #Optimal from MSc work - glucaric_acid_singlearch.csv
+# W = [0.000041, 3.328086, 5.070964, 0.000227] #Optimal from MSc work - glucaric_acid_singlearch.csv
 params = [A, W]
-bo_data, fba_data, ode_data = single_run(params, 100, 86400)
+W = values(scaled_plan[2, :])[2:5]
+bo_data, fba_data, ode_data = single_run_ga(params, 1, 1)
 
-palette= ColorSchemes.tab10.colors
-p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
-p2 = plot(fba_data.time, [fba_data.v_in fba_data.v_fpp fba_data.v_ipp],  label=["Influx" "FPP" "IPP"], color=[palette[1] palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
-p4 = plot(ode_data.time, [ode_data.crtE ode_data.crtB ode_data.crtI ode_data.crtY],lw=3,label=["CrtE" "CrtB" "CrtI" "CrtY"], color=[palette[2] palette[3] palette[4] palette[5]], xlabel="time (hrs)", ylabel="Concentration (mM)")
-p5 = plot(ode_data.time, [ode_data.fpp ode_data.ipp], lw=3, label=["FPP" "IPP"], color=[palette[5] palette[9]], xlabel="time (hrs)", ylabel="Concentration (mM)")
-p6 = plot(ode_data.time, [ode_data.ggp ode_data.phy ode_data.lyc ode_data.bcar], lw=3, label=["GGP" "Phy" "Lycopene" "Beta-carotene"], color=[palette[7] palette[8] palette[10] palette[1]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+# palette= ColorSchemes.tab10.colors
+# p1 = plot(fba_data.time, fba_data.lam, lw=3, legend=false, color="black", xlabel="time (hrs)", ylabel="Growth rate (mM/hr)")
+# p2 = plot(fba_data.time, [fba_data.v_in fba_data.v_fpp fba_data.v_ipp],  label=["Influx" "FPP" "IPP"], color=[palette[1] palette[3] palette[4]], lw=3,xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+# p3 = plot(ode_data.time, ode_data.v_p,lw=3, label="Pathway", color=palette[2], xlabel="time (hrs)", ylabel="Flux (mM/hr)")
+# p4 = plot(ode_data.time, [ode_data.crtE ode_data.crtB ode_data.crtI ode_data.crtY],lw=3,label=["CrtE" "CrtB" "CrtI" "CrtY"], color=[palette[2] palette[3] palette[4] palette[5]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+# p5 = plot(ode_data.time, [ode_data.fpp ode_data.ipp], lw=3, label=["FPP" "IPP"], color=[palette[5] palette[9]], xlabel="time (hrs)", ylabel="Concentration (mM)")
+# p6 = plot(ode_data.time, [ode_data.ggp ode_data.phy ode_data.lyc ode_data.bcar], lw=3, label=["GGP" "Phy" "Lycopene" "Beta-carotene"], color=[palette[7] palette[8] palette[10] palette[1]], xlabel="time (hrs)", ylabel="Concentration (mM)")
 
-plot(p1, p2, p3, p4, p5, p6, layout=(3,2), size=(700, 700))
+# plot(p1, p2, p3, p4, p5, p6, layout=(3,2), size=(700, 700))

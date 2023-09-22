@@ -1,4 +1,4 @@
-function fba_loop(N, params, u0, warmup_flag=0)
+function fba_loop(N, A_W, u0, warmup_flag=0)
     #instantiate initial times
     deltat = 1/(60*60) #genetic timescale, seconds
     starttime = 0.
@@ -9,7 +9,7 @@ function fba_loop(N, params, u0, warmup_flag=0)
     fba_df = DataFrame("v_dp" => [0.0])
     lam = predict(lam_model, fba_df)[1]
     v_in = v_in_model(fba_df.v_dp')[1]
-    A, W = params
+    A, W = A_W
     p = [A, W, v_in, lam] 
 
     #FBA-ODE optimization loop
@@ -58,7 +58,7 @@ end
 
      
 ###WARMUP ROUTINE
-function warmup(num_iters, W_A, f6p_max = 0.281, g6p_max = 0.068)
+function warmup(num_iters, A_W, f6p_max = 0.281, g6p_max = 0.068)
     objectives = []
     f6ps = []
     g6ps = []
@@ -67,7 +67,7 @@ function warmup(num_iters, W_A, f6p_max = 0.281, g6p_max = 0.068)
         f6p, g6p = values(params)
         u0 = [g6p, f6p, 0., 0., 0.]
         stable_iters = 10
-        ode_data, fba_data = fba_loop(stable_iters, W_A, u0, 1)
+        ode_data, fba_data = fba_loop(stable_iters, A_W, u0, 1)
         objective = 1/(g6p + f6p)
         if nrow(ode_data) < stable_iters && nrow(fba_data) < stable_iters
             objective = objective + 10E7
