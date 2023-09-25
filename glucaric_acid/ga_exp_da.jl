@@ -98,17 +98,17 @@ end
 # params = [A, W]
 # bo_data, fba_data, ode_data, sum_data = single_run(params, 1000, 100)
 
-println("OPEN LOOP CONTROL")
-A = [[0, 0, 1], [0, 0, 1]] #open loop
-arch = "nc"
-save_suffix=arch
-num_iters = 400
-bo_iters = 1000
-sim_iters = 86400
+# println("OPEN LOOP CONTROL")
+# A = [[0, 0, 1], [0, 0, 1]] #open loop
+# arch = "nc"
+# save_suffix=arch
+# num_iters = 400
+# bo_iters = 1000
+# sim_iters = 86400
 
-scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
-scaled_plan = scaled_plan[101:500, :]
-bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
+# scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
+# scaled_plan = scaled_plan[101:500, :]
+# bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
 
 # println("DUAL CONTROL")
 # A = [[0, 0, 1], [0, 0, 1]] #open loop
@@ -133,13 +133,13 @@ bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_ite
 # scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
 # bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
 
-# println("DOWNSTREAM ACTIVATION")
-# A = [[0, 0, 1], [1, 0, 0]] 
-# arch = "da"
-# save_suffix=arch
-# num_iters = 500
-# bo_iters = 1000
-# sim_iters = 86400
+println("DOWNSTREAM ACTIVATION")
+A = [[0, 0, 1], [1, 0, 0]] 
+arch = "da"
+save_suffix=arch
+num_iters = 500
+bo_iters = 1000
+sim_iters = 86400
 
-# scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
-# bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
+scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
+bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
