@@ -126,11 +126,12 @@ println("UPSTREAM REPRESSION")
 A = [[0, 1, 0], [0, 0, 1]] 
 arch = "ur"
 save_suffix=arch
-num_iters = 500
+num_iters = 500-55
 bo_iters = 1000
 sim_iters = 86400
 
 scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
+scaled_plan = scaled_plan[56:500, :]
 bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
 
 # println("DOWNSTREAM ACTIVATION")
