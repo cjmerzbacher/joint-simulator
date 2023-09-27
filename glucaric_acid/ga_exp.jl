@@ -102,12 +102,12 @@ println("OPEN LOOP CONTROL")
 A = [[0, 0, 1], [0, 0, 1]] #open loop
 arch = "nc"
 save_suffix=arch
-num_iters = 400-55
+num_iters = 255
 bo_iters = 1000
 sim_iters = 86400
 
 scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
-scaled_plan = scaled_plan[156:500, :]
+scaled_plan = scaled_plan[246:500, :]
 bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
 
 # println("DUAL CONTROL")

@@ -17,7 +17,7 @@ using TreeParzen
 using CSV
 using LatinHypercubeSampling
 home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
-#home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
 include(home_path * "models/glucaric_acid.jl")
 include(home_path * "glucaric_acid/ga_sim.jl")
 
@@ -53,7 +53,7 @@ function single_run(params, bo_iters, sim_iters)
     return bo_data, fba_data, ode_data, summary
 end
 
-function new_name(A, Ws, num_iters, bo_iters, sim_iters, save_suffix, save_data=true)
+function w_sweep(A, Ws, num_iters, bo_iters, sim_iters, save_suffix, save_data=true)
     global bo_data = DataFrame()
     global sim_fba_data = DataFrame()
     global sim_ode_data = DataFrame()
@@ -91,6 +91,46 @@ function new_name(A, Ws, num_iters, bo_iters, sim_iters, save_suffix, save_data=
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
+function knockouts(params, knockouts, bo_iters, sim_iters, save_suffix, save_data=true)
+    global bo_data = DataFrame()
+    global sim_fba_data = DataFrame()
+    global sim_ode_data = DataFrame()
+    global sum_data = DataFrame()
+
+    i = 0
+    for k in knockouts
+        i = i + 1
+        print("Beginning knockout ", i, "of gene ", k)
+        #TRAIN NEW ML model 
+
+        #Run simulation with ML model passed
+        bo, fba, ode, summary = single_run(params, bo_iters, sim_iters)
+
+        bo_data = vcat(bo_data, bo)
+        sim_fba_data = vcat(sim_fba_data, fba)
+        sim_ode_data = vcat(sim_ode_data, ode)
+        sum_data = vcat(sum_data, summary)
+
+        if i%5 == 0 
+            if save_data
+                #Save out BO data and simulation data
+                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
+                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
+                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
+                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
+            end
+        end
+    end
+    if save_data
+        #Save out BO data and simulation data
+        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
+        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
+        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
+        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
+    end
+    return bo_data, sim_fba_data, sim_ode_data, sum_data
+end
+
 # A = [[0, 0, 1], [0, 0, 1]] #open loop
 # W = [[2., 3.328086, 0.000041], [2., 5.070964, 0.000227]] #Optimal from MSc work - glucaric_acid_singlearch.csv
 # W = [[2.0, 7.070183513988823, 0.09],
@@ -98,49 +138,15 @@ end
 # params = [A, W]
 # bo_data, fba_data, ode_data, sum_data = single_run(params, 1000, 100)
 
-# println("OPEN LOOP CONTROL")
-# A = [[0, 0, 1], [0, 0, 1]] #open loop
-# arch = "nc"
-# save_suffix=arch
-# num_iters = 400
-# bo_iters = 1000
-# sim_iters = 86400
-
-# scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
-# scaled_plan = scaled_plan[101:500, :]
-# bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
-
-# println("DUAL CONTROL")
-# A = [[0, 0, 1], [0, 0, 1]] #open loop
-# arch = "dc"
-# save_suffix=arch
-# num_iters = 400
-# bo_iters = 1000
-# sim_iters = 86400
-
-# scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
-# scaled_plan = scaled_plan[101:500, :]
-# bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
-
-# println("UPSTREAM REPRESSION")
-# A = [[0, 1, 0], [0, 0, 1]] 
-# arch = "ur"
-# save_suffix=arch
-# num_iters = 500
-# bo_iters = 1000
-# sim_iters = 86400
-
-# scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
-# bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
-
-println("DOWNSTREAM ACTIVATION")
-A = [[0, 0, 1], [1, 0, 0]] 
-arch = "da"
+println("OPEN LOOP CONTROL")
+A = [[0, 0, 1], [0, 0, 1]] #open loop
+W = [[2., 3.328086, 0.000041], [2., 5.070964, 0.000227]]
+params = [A, W]
+arch = "nc"
 save_suffix=arch
-num_iters = 370
 bo_iters = 1000
 sim_iters = 86400
 
-scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
-scaled_plan = scaled_plan[131:500, :]
-bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
+knockouts = CSV.read(home_path * "glucaric_acid/exp_data/knockouts.csv", DataFrame)
+bo_data, sim_fba_data, sim_ode_data, sum_data = knockouts(params, knockouts, num_iters, bo_iters, sim_iters, save_suffix, false)
+
