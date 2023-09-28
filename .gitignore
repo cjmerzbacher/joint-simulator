@@ -6,4 +6,5 @@
 !/glucaric_acid/exp_data/ur_lhc.csv
 !/glucaric_acid/exp_data/da_lhc.csv
 !/glucaric_acid/exp_data/dc_lhc.csv
-/beta_carotene/ml_models/knockouts/
+/beta_carotene/ml_models
+!/glucaric_acid/exp_data/knockouts.csv
