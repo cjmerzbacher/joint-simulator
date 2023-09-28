@@ -17,8 +17,8 @@ using Serialization
 using TreeParzen
 using CSV
 using LatinHypercubeSampling
-#home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
-home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
+#home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
 include(home_path * "models/beta_carotene.jl")
 include(home_path * "beta_carotene/bcar_sim.jl")
 
@@ -176,7 +176,7 @@ function train_ml_models(knockout, data)
 end
 
 
-function run_knockouts(W, knockouts, bo_iters, sim_iters, save_suffix, save_data=true)
+function run_knockouts(W, knockouts, bo_iters, sim_iters, save_data=true)
     global bo_data = DataFrame()
     global sim_fba_data = DataFrame()
     global sim_ode_data = DataFrame()
@@ -189,45 +189,37 @@ function run_knockouts(W, knockouts, bo_iters, sim_iters, save_suffix, save_data
         #Create necessary dictionaries
         mkdir(home_path*"beta_carotene/ml_models/knockouts/"*k)
         mkdir(home_path*"beta_carotene/exp_data/knockouts/"*k)
+        
         #TRAIN NEW ML model 
         training_data = gen_training_data(k)
         v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(k, training_data)
-        models = [lam_model, v_in_model, v_fpp_model, v_ipp_model]
+        models = [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model]
         #Run simulation with ML model passed
-        bo, fba, ode, summary = single_run(W, bo_iters, 500, sim_iters, models)
+        bo_data, sim_fba_data, sim_ode_data, sum_data = single_run(W, bo_iters, 500, sim_iters, models)
 
-        bo_data = vcat(bo_data, bo)
-        sim_fba_data = vcat(sim_fba_data, fba)
-        sim_ode_data = vcat(sim_ode_data, ode)
-        sum_data = vcat(sum_data, summary)
-
-        if i%5 == 0 
-            if save_data
-                #Save out BO data and simulation data
-                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
-                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
-                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
-                CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
-            end
+        if save_data
+            #Save out BO data and simulation data
+            CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
+            CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
+            CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
+            CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
         end
     end
-    if save_data
-        #Save out BO data and simulation data
-        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
-        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
-        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
-        CSV.write(home_path * "glucaric_acid/exp_data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
-    end
-    return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
 W = [2.411031e-07,  0.000097, 0.000098, 0.000367]
-save_suffix="knockouts"
 bo_iters = 1000
 sim_iters = 86400
 knockouts = CSV.read(home_path * "glucaric_acid/exp_data/knockouts.csv", DataFrame)
-bo_data, sim_fba_data, sim_ode_data, sum_data = run_knockouts(W, [knockouts.knockouts[1]], bo_iters, sim_iters, save_suffix, false)
+run_knockouts(W, knockouts.knockouts[11:251], bo_iters, sim_iters, true)
 
+# feas_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/feas_model_b2551.jls")
+# lam_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/lam_model_b2551.jls")
+# v_in_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/v_in_model_b2551.jls")
+# v_fpp_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/v_fpp_model_b2551.jls")
+# v_ipp_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/v_ipp_model_b2551.jls")
+# models =  [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model]
+# bo, fba, ode, summary = single_run(W, bo_iters, 500, sim_iters, models)
 # W = [0.00001, 0.0001, 0.001, 0.001]
 # N = 100
 # u0 = [0.7, 0.7, 0., 0., 0., 0., 0., 0., 0., 0.]

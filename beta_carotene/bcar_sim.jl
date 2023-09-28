@@ -1,5 +1,5 @@
-function fba_loop(N, W, u0, warmup_flag=0, models=[lam_model, v_in_model, v_fpp_model, v_ipp_model])
-    lam_model, v_in_model, v_fpp_model, v_ipp_model = models
+function fba_loop(N, W, u0, warmup_flag=0, models=[feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model])
+    feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model = models
     #instantiate initial times
     deltat = 1/(60*60) #genetic timescale, seconds
     starttime = 0.
@@ -79,7 +79,7 @@ function best_in_df(df, col)
 end
 
 ###WARMUP ROUTINE
-function bayesopt_ics(ic_iters, stable_iters, W, fpp_max = 0.755, ipp_max = 0.755, models = [lam_model, v_in_model, v_fpp_model, v_ipp_model])
+function bayesopt_ics(ic_iters, stable_iters, W, fpp_max = 0.755, ipp_max = 0.755, models = [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model])
     objectives = []
     fpps = []
     ipps = []

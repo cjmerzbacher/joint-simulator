@@ -16,8 +16,8 @@ using Serialization
 using TreeParzen
 using CSV
 using LatinHypercubeSampling
-home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
-#home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+#home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
+home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
 include(home_path * "models/glucaric_acid.jl")
 include(home_path * "glucaric_acid/ga_sim.jl")
 
