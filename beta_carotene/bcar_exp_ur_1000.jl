@@ -97,16 +97,16 @@ function lhc_w_sweep(arch, num_iters, bo_iters, stable_iters, sim_iters, save_su
     return bo_data, sim_fba_data, sim_ode_data, sum_data
 end
 
-save_suffix="ur_1000"
+save_suffix="ur_operon"
 arch = "ur"
-num_iters = 900
+num_iters = 1000
 bo_iters = 1000
 stable_iters = 500
 sim_iters = 86400
+
 # scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
 # scaled_plan = scaled_plan[101:1000, :]
 ur_scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc_ur.csv", DataFrame)
-ur_scaled_plan = ur_scaled_plan[101:1000, :]
 bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(arch, num_iters, bo_iters, stable_iters, sim_iters, save_suffix, true)
 
 # W = [0.00001, 0.1, 0.0001, 0.001, 0.001]

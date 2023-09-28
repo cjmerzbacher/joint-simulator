@@ -63,7 +63,7 @@ function beta_carotene_upstream_repression(du, u, p, t)
     du[5] = v_crtI - v_crtY - lam*lyc #lyc
     du[6] = v_crtY - lam*bcar #bcar
     du[7] = repression(bcar, k_crtE, theta_crtE, 2) - lam*crtE #crtE
-    du[8] = k_crtB - lam*crtB #crtB
-    du[9] = k_crtI - lam*crtI #crtI
-    du[10] = k_crtY - lam*crtY #crtY
+    du[8] = repression(bcar, k_crtB, theta_crtE, 2)  - lam*crtB #crtB
+    du[9] = repression(bcar, k_crtI, theta_crtE, 2) - lam*crtI #crtI
+    du[10] = repression(bcar, k_crtY, theta_crtE, 2) - lam*crtY #crtY
 end
