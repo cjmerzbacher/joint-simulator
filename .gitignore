@@ -1,4 +1,5 @@
 *.csv
+*.zip
 !/beta_carotene/exp_data/lhc.csv
 !/beta_carotene/exp_data/lhc_ur.csv
 !/beta_carotene/exp_data/lhc_notdone.csv

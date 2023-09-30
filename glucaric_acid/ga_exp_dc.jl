@@ -16,8 +16,8 @@ using Serialization
 using TreeParzen
 using CSV
 using LatinHypercubeSampling
-home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
-#home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+#home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
+home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
 include(home_path * "models/glucaric_acid.jl")
 include(home_path * "glucaric_acid/ga_sim.jl")
 
@@ -112,14 +112,14 @@ end
 
 println("DUAL CONTROL")
 A = [[0, 0, 1], [0, 0, 1]] #open loop
-arch = "dc"
+arch = "dc_r"
 save_suffix=arch
-num_iters = 10
+num_iters = 115
 bo_iters = 1000
 sim_iters = 86400
 
-scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/"*arch*"_lhc.csv", DataFrame)
-scaled_plan = scaled_plan[491:500, :]
+scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/dc_lhc_remaining.csv", DataFrame)
+# scaled_plan = scaled_plan[491:500, :]
 bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
 
 # println("UPSTREAM REPRESSION")
