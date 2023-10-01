@@ -112,13 +112,13 @@ end
 
 println("DUAL CONTROL")
 A = [[0, 0, 1], [0, 0, 1]] #open loop
-arch = "dc_r"
+arch = "dc_r2"
 save_suffix=arch
-num_iters = 115
+num_iters = 23
 bo_iters = 1000
 sim_iters = 86400
 
-scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/dc_lhc_remaining.csv", DataFrame)
+scaled_plan = CSV.read(home_path * "glucaric_acid/exp_data/dc_lhc_rema2.csv", DataFrame)
 # scaled_plan = scaled_plan[491:500, :]
 bo_data, sim_fba_data, sim_ode_data, sum_data = new_name(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
 
