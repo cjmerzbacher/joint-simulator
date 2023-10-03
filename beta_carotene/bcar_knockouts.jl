@@ -185,7 +185,7 @@ function run_knockouts(W, knockouts, bo_iters, sim_iters, save_data=true)
     i = 0
     for k in knockouts
         i = i + 1
-        print("Beginning knockout ", i, " of gene ", k)
+        println("Beginning knockout ", i, " of gene ", k)
         if isdir(home_path*"beta_carotene/ml_models/knockouts/"*k)
             println("Knockout "*k*" already simulated, skipping...")
         else
