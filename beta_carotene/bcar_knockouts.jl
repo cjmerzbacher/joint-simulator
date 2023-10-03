@@ -186,23 +186,27 @@ function run_knockouts(W, knockouts, bo_iters, sim_iters, save_data=true)
     for k in knockouts
         i = i + 1
         print("Beginning knockout ", i, " of gene ", k)
-        #Create necessary dictionaries
-        mkdir(home_path*"beta_carotene/ml_models/knockouts/"*k)
-        mkdir(home_path*"beta_carotene/exp_data/knockouts/"*k)
-        
-        #TRAIN NEW ML model 
-        training_data = gen_training_data(k)
-        v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(k, training_data)
-        models = [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model]
-        #Run simulation with ML model passed
-        bo_data, sim_fba_data, sim_ode_data, sum_data = single_run(W, bo_iters, 500, sim_iters, models)
+        if isdir(home_path*"beta_carotene/ml_models/knockouts/"*k)
+            println("Knockout "*k*" already simulated, skipping...")
+        else
+            #Create necessary dictionaries
+            mkdir(home_path*"beta_carotene/ml_models/knockouts/"*k)
+            mkdir(home_path*"beta_carotene/exp_data/knockouts/"*k)
+            
+            #TRAIN NEW ML model 
+            training_data = gen_training_data(k)
+            v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(k, training_data)
+            models = [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model]
+            #Run simulation with ML model passed
+            bo_data, sim_fba_data, sim_ode_data, sum_data = single_run(W, bo_iters, 500, sim_iters, models)
 
-        if save_data
-            #Save out BO data and simulation data
-            CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
-            CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
-            CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
-            CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
+            if save_data
+                #Save out BO data and simulation data
+                CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
+                CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
+                CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
+                CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
+            end
         end
     end
 end
@@ -211,7 +215,7 @@ W = [2.411031e-07,  0.000097, 0.000098, 0.000367]
 bo_iters = 1000
 sim_iters = 86400
 knockouts = CSV.read(home_path * "glucaric_acid/exp_data/knockouts.csv", DataFrame)
-run_knockouts(W, knockouts.knockouts[78:251], bo_iters, sim_iters, true)
+run_knockouts(W, knockouts.knockouts[:251], bo_iters, sim_iters, true)
 
 # feas_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/feas_model_b2551.jls")
 # lam_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/lam_model_b2551.jls")
