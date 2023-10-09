@@ -17,8 +17,9 @@ using Serialization
 using TreeParzen
 using CSV
 using LatinHypercubeSampling
-home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
-#home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+#home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
+home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+alt_path="F:/"
 include(home_path * "models/beta_carotene.jl")
 include(home_path * "beta_carotene/bcar_sim.jl")
 
@@ -75,7 +76,7 @@ function gen_training_data(k)
         end
     end
     println("Completed training data generation for knockout ", k)
-    CSV.write(home_path * "beta_carotene/ml_models/knockouts/"*k*"/training_data_"*k*".csv", training_data)
+    CSV.write(alt_path * "knockouts_ml_models/"*k*"/training_data_"*k*".csv", training_data)
     return training_data
 end
 
@@ -166,11 +167,11 @@ function train_ml_models(knockout, data)
     mse = (mean(feas_test_data.lam - test_pred).^2)
     println("MSE on test set: $mse")
 
-    serialize(home_path *"beta_carotene/ml_models/knockouts/"*knockout*"/v_in_model_"*knockout*".jls", v_in_model)
-    serialize(home_path *"beta_carotene/ml_models/knockouts/"*knockout*"/v_fpp_model_"*knockout*".jls", v_fpp_model)
-    serialize(home_path *"beta_carotene/ml_models/knockouts/"*knockout*"/v_ipp_model_"*knockout*".jls", v_ipp_model)
-    serialize(home_path *"beta_carotene/ml_models/knockouts/"*knockout*"/lam_model_"*knockout*".jls", lam_model)
-    serialize(home_path *"beta_carotene/ml_models/knockouts/"*knockout*"/feas_model_"*knockout*".jls", feas_model)
+    serialize(alt_path *"knockouts_ml_models/"*knockout*"/v_in_model_"*knockout*".jls", v_in_model)
+    serialize(alt_path *"knockouts_ml_models/"*knockout*"/v_fpp_model_"*knockout*".jls", v_fpp_model)
+    serialize(alt_path *"knockouts_ml_models/"*knockout*"/v_ipp_model_"*knockout*".jls", v_ipp_model)
+    serialize(alt_path *"knockouts_ml_models/"*knockout*"/lam_model_"*knockout*".jls", lam_model)
+    serialize(alt_path *"knockouts_ml_models/"*knockout*"/feas_model_"*knockout*".jls", feas_model)
     println("All models saved to JLS files...")
     return v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model
 end
@@ -186,12 +187,12 @@ function run_knockouts(W, knockouts, bo_iters, sim_iters, save_data=true)
     for k in knockouts
         i = i + 1
         println("Beginning knockout ", i, " of gene ", k)
-        if isdir(home_path*"beta_carotene/ml_models/knockouts/"*k)
+        if isdir(alt_path*"knockouts/"*k)
             println("Knockout "*k*" already simulated, skipping...")
         else
             #Create necessary dictionaries
-            mkdir(home_path*"beta_carotene/ml_models/knockouts/"*k)
-            mkdir(home_path*"beta_carotene/exp_data/knockouts/"*k)
+            mkdir(alt_path*"knockouts/"*k)
+            mkdir(alt_path*"knockouts_ml_models/"*k)
             
             #TRAIN NEW ML model 
             training_data = gen_training_data(k)
@@ -202,10 +203,10 @@ function run_knockouts(W, knockouts, bo_iters, sim_iters, save_data=true)
 
             if save_data
                 #Save out BO data and simulation data
-                CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
-                CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
-                CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
-                CSV.write(home_path * "beta_carotene/exp_data/knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
+                CSV.write(alt_path * "knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
+                CSV.write(alt_path * "knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
+                CSV.write(alt_path * "knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
+                CSV.write(alt_path * "knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
             end
         end
     end
