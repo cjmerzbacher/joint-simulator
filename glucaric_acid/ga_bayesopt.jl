@@ -46,22 +46,29 @@ function single_run(params, bo_iters, sim_iters)
     #Append final simulation data
     fba_data[!, "W"] = fill(W, size(fba_data, 1)) 
     ode_data[!, "W"] = fill(W, size(ode_data, 1)) 
+    fba_data[!, "k_ino1"] = fill(W[1][3], size(fba_data, 1)) 
+    ode_data[!, "k_ino1"] = fill(W[1][3], size(ode_data, 1)) 
 
-    burden = sum(fba_data.lam[1] .- fba_data.lam)
+    delta_burden = sum(fba_data.lam[1] - fba_data.lam[end])
+    burden = (1-(fba_data.lam[1]-delta_burden)/fba_data.lam[1])
+    ga_ss = ode_data.mi[end]
+    production = sum((ga_ss .- ode_data.mi).^2)
 
     #Create summary data frame with delta lam, final lam, overall promoter strength, four W values, total beta-carotene production
-    summary = DataFrame("k_ino1" => [W[1][3]], "theta_ino1" => [W[1][2]], "k_miox" => [W[2][3]], "theta_miox" => [W[2][2]], "production" => [sum(ode_data.mi)], "burden" => [burden], "objmin" => [objmin])
+    summary = DataFrame("k_ino1" => [W[1][3]], "theta_ino1" => [W[1][2]], "k_miox" => [W[2][3]], "theta_miox" => [W[2][2]], "production" => [production], "burden" => [burden], "objmin" => [objmin])
     
     return fba_data, ode_data, summary
 end
 
-function bayesopt(num_iters, bo_iters, sim_iters, save_suffix, save_data=true)
+function bayesopt(alpha, num_iters, bo_iters, sim_iters, save_suffix, save_data=true)
     global sim_fba_data = DataFrame()
     global sim_ode_data = DataFrame()
     global sum_data = DataFrame()
     global bo_data = DataFrame()
 
     global i = 0
+    global a = alpha
+    global s = 1256
 
     #Define objective function
     function objective(args)
@@ -79,6 +86,10 @@ function bayesopt(num_iters, bo_iters, sim_iters, save_suffix, save_data=true)
 
         bo = DataFrame("arch" => [A], "k_ino1" => [k_ino1], "theta_ino1" => [theta_ino1], "k_miox" => [k_miox] , "theta_miox" => [theta_miox], "objective" => [summary.burden[1]/summary.production[1]], "burden" => [summary.burden[1]], "production" => [summary.production[1]])
 
+        obj = a*summary.burden[1] + ((1-a)*s)/summary.production[1]
+        println("Objective is ", obj, " with a burden of ", summary.burden[1], " and a production of ", summary.production[1])
+        summary[!, "obj"] = fill(obj, size(summary, 1))
+
         sim_fba_data = vcat(sim_fba_data, fba)
         sim_ode_data = vcat(sim_ode_data, ode)
         sum_data = vcat(sum_data, summary)
@@ -94,9 +105,7 @@ function bayesopt(num_iters, bo_iters, sim_iters, save_suffix, save_data=true)
             end
         end
 
-        obj = summary.burden[1]/summary.production[1]
-        println("Objective is ", obj, " with a burden of ", summary.burden[1], " and a production of ", summary.production[1])
-
+        
         #Compute objective function and save out
         return obj
     end
@@ -124,4 +133,10 @@ end
 num_iters = 100
 bo_iters = 1000
 sim_iters = 86400
-bayesopt(num_iters, bo_iters, sim_iters, "bayesopt_test", true)
+bayesopt(0, num_iters, bo_iters, sim_iters, "bayesopt_0", true)
+
+bayesopt(1, num_iters, bo_iters, sim_iters, "bayesopt_1", true)
+
+bayesopt(0.25, num_iters, bo_iters, sim_iters, "bayesopt_25", true)
+bayesopt(0.5, num_iters, bo_iters, sim_iters, "bayesopt_5", true)
+bayesopt(0.75, num_iters, bo_iters, sim_iters, "bayesopt_75", true)

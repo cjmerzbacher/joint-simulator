@@ -118,6 +118,10 @@ function train_ml_models(knockout, data)
     feas_test_indices = [findall(x -> x == 1, test_pred_class)] 
     feas_test_data = test_data[feas_test_indices[1], :]
 
+    if nrow(feas_train_data) == 0
+        error("No feasible regime found.")
+    end
+
     #Train a linear model to predict v_in
     println("Predicting FPP influx...")
     v_in_model = fit(LinearModel, @formula(v_in~v_p), feas_train_data)
@@ -196,18 +200,25 @@ function run_knockouts(W, knockouts, bo_iters, sim_iters, save_data=true)
             
             #TRAIN NEW ML model 
             training_data = gen_training_data(k)
-            v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(k, training_data)
-            models = [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model]
-            #Run simulation with ML model passed
-            bo_data, sim_fba_data, sim_ode_data, sum_data = single_run(W, bo_iters, 500, sim_iters, models)
-
-            if save_data
-                #Save out BO data and simulation data
-                CSV.write(alt_path * "knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
-                CSV.write(alt_path * "knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
-                CSV.write(alt_path * "knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
-                CSV.write(alt_path * "knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
+            try
+                v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(k, training_data)
+                models = [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model]
+                #Run simulation with ML model passed
+                bo_data, sim_fba_data, sim_ode_data, sum_data = single_run(W, bo_iters, 500, sim_iters, models)
+    
+                if save_data
+                    #Save out BO data and simulation data
+                    CSV.write(alt_path * "knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
+                    CSV.write(alt_path * "knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
+                    CSV.write(alt_path * "knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
+                    CSV.write(alt_path * "knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
+                end
+            catch
+                println("No feasible regime found in training data.")
+                continue
             end
+
+           
         end
     end
 end
@@ -216,7 +227,7 @@ W = [2.411031e-07,  0.000097, 0.000098, 0.000367]
 bo_iters = 1000
 sim_iters = 86400
 knockouts = CSV.read(home_path * "glucaric_acid/exp_data/knockouts.csv", DataFrame)
-run_knockouts(W, knockouts.knockouts[78:251], bo_iters, sim_iters, true)
+run_knockouts(W, knockouts.knockouts[789:1500], bo_iters, sim_iters, true)
 
 # feas_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/feas_model_b2551.jls")
 # lam_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/lam_model_b2551.jls")
