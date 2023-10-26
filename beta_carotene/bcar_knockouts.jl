@@ -227,7 +227,7 @@ W = [2.411031e-07,  0.000097, 0.000098, 0.000367]
 bo_iters = 1000
 sim_iters = 86400
 knockouts = CSV.read(home_path * "glucaric_acid/exp_data/knockouts.csv", DataFrame)
-run_knockouts(W, knockouts.knockouts[789:1500], bo_iters, sim_iters, true)
+run_knockouts(W, knockouts.knockouts[820:1500], bo_iters, sim_iters, true)
 
 # feas_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/feas_model_b2551.jls")
 # lam_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/lam_model_b2551.jls")

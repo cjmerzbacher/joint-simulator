@@ -133,10 +133,4 @@ end
 num_iters = 100
 bo_iters = 1000
 sim_iters = 86400
-bayesopt(0, num_iters, bo_iters, sim_iters, "bayesopt_0", true)
-
-bayesopt(1, num_iters, bo_iters, sim_iters, "bayesopt_1", true)
-
-bayesopt(0.25, num_iters, bo_iters, sim_iters, "bayesopt_25", true)
-bayesopt(0.5, num_iters, bo_iters, sim_iters, "bayesopt_5", true)
-bayesopt(0.75, num_iters, bo_iters, sim_iters, "bayesopt_75", true)
+bayesopt(0.75, num_iters, bo_iters, sim_iters, "bayesopt_75_2", true)
