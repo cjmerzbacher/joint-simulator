@@ -191,43 +191,49 @@ function run_knockouts(W, knockouts, bo_iters, sim_iters, save_data=true)
     for k in knockouts
         i = i + 1
         println("Beginning knockout ", i, " of gene ", k)
-        if isdir(alt_path*"knockouts/"*k)
-            println("Knockout "*k*" already simulated, skipping...")
-        else
+        # if isdir(alt_path*"knockouts/"*k)
+        #     println("Knockout "*k*" already simulated, skipping...")
+        # elseif isdir(alt_path*"knockouts_ml_models/"*k)
+        #     println("Knockout "*k*" already simulated, skipping...")
+        # else
             #Create necessary dictionaries
-            mkdir(alt_path*"knockouts/"*k)
-            mkdir(alt_path*"knockouts_ml_models/"*k)
+            # mkdir(alt_path*"knockouts/"*k)
+            # mkdir(alt_path*"knockouts_ml_models/"*k)
             
-            #TRAIN NEW ML model 
-            training_data = gen_training_data(k)
-            try
-                v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(k, training_data)
-                models = [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model]
-                #Run simulation with ML model passed
-                bo_data, sim_fba_data, sim_ode_data, sum_data = single_run(W, bo_iters, 500, sim_iters, models)
-    
-                if save_data
-                    #Save out BO data and simulation data
-                    CSV.write(alt_path * "knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
-                    CSV.write(alt_path * "knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
-                    CSV.write(alt_path * "knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
-                    CSV.write(alt_path * "knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
-                end
-            catch
-                println("No feasible regime found in training data.")
-                continue
+        #TRAIN NEW ML model 
+        training_data = gen_training_data(k)
+        try
+            v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = train_ml_models(k, training_data)
+            models = [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model]
+            #Run simulation with ML model passed
+            bo_data, sim_fba_data, sim_ode_data, sum_data = single_run(W, bo_iters, 500, sim_iters, models)
+
+            if save_data
+                #Save out BO data and simulation data
+                CSV.write(alt_path * "knockouts/"*k*"/bo_data_"*k*".csv", bo_data)
+                CSV.write(alt_path * "knockouts/"*k*"/sim_fba_data_"*k*".csv", sim_fba_data)
+                CSV.write(alt_path * "knockouts/"*k*"/sim_ode_data_"*k*".csv", sim_ode_data)
+                CSV.write(alt_path * "knockouts/"*k*"/sum_data_"*k*".csv", sum_data)
             end
+        catch
+            println("No feasible regime found in training data.")
+            continue
+        end
 
            
-        end
+        # end
     end
 end
 
 W = [2.411031e-07,  0.000097, 0.000098, 0.000367]
 bo_iters = 1000
 sim_iters = 86400
-knockouts = CSV.read(home_path * "glucaric_acid/exp_data/knockouts.csv", DataFrame)
-run_knockouts(W, knockouts.knockouts[1300:1500], bo_iters, sim_iters, true)
+#knockouts = ["b0573", "b2957", "b0150", "b2253", "b2254", "b1967", "b2256", "b0933", "b1865", "b2258", "b0934", "b4544", "b0936", "b2954", "b3621", "b2032", "b1781", "b2027", "b1002", "b3001", "b2938", "b4090", "b2035", "b3620", "b3622", "b3624", "b0459", "b4084", "b3629", "b4085", "b0585", "b3628", "b3748", "b3627", "b3751", "b1326", "b3850", "b1325", "b3750", "b3630", "b4230", "b0591", "b3632", "b3035", "b4227", "b3625", "b4231", "b0692", "b2810", "b3749", "b4485", "b2014", "b0260", "b1680", "b1296", "b3867", "b1298", "b3374", "b0810", "b0809", "b3824", "b1308", "b2133", "b0811", "b2260", "b1492", "b3540", "b1487", "b3544", "b0166", "b2893", "b1486", "b1483", "b0604", "b1484", "b3930", "b1519", "b1485", "b1511", "b2371", "b2989", "b2302", "b1619", "b0785", "b3893", "b1474", "b3894", "b1475", "b3892", "b1476", "b0776", "b3412", "b2515", "b4238", "b4237", "b3924", "b4209", "b1387", "b1393", "b2912"]
+knockouts = ["b1993","b2724","b2935","b3034","b3041","b1241","b2021","b2232","b2418","b2481","b3005","b3784","b3831","b4481"]
+run_knockouts(W, knockouts, bo_iters, sim_iters, true)
+
+# knockouts = CSV.read(home_path * "data/bcar/knockouts/remaining_knockouts.csv", DataFrame)
+# run_knockouts(W, knockouts.knockouts[103:end], bo_iters, sim_iters, true)
 
 # feas_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/feas_model_b2551.jls")
 # lam_model = deserialize(home_path * "beta_carotene/ml_models/knockouts/b2551/lam_model_b2551.jls")

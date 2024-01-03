@@ -97,10 +97,7 @@ function train_ml_models(data)
     feas_train_data = train_data[feas_train_indices[1], :]
     feas_test_indices = [findall(x -> x == 1, test_pred_class)] 
     feas_test_data = test_data[feas_test_indices[1], :]
-
-    if length(feas_train_data) == 0:
-        return feas_model, 0, 0
-
+    
     #Train a neural network model to predict v_in
     println("Predicting pathway influx...")
     num_epochs = 1000
@@ -514,3 +511,4 @@ end
 # burden_experiments()
 # bayesopt_experiments()
 # medium_conditions_experiments()
+println("Experiments completed!")
