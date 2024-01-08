@@ -1,3 +1,9 @@
+### BETA CAROTENE MODEL - SIMULATOR AND EXPERIMENTS
+#To adapt, change home directory paths
+home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
+home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+include(home_path * "models/glucaric_acid.jl")
+
 # Import required package
 using DifferentialEquations
 using COBREXA
@@ -16,19 +22,17 @@ using Serialization
 using TreeParzen
 using CSV
 using LatinHypercubeSampling
-
-#Set home directory path
-home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
-home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
-include(home_path * "models/glucaric_acid.jl")
-
 println("Imports completed")
 
-###GENERATING TRAINING DATA AND ML MODELS  
+###GENERATING TRAINING DATA AND ML MODELS 
+"""gen_training_data(cond_name::String)
+        Generates training data for a given medium condition by name.
+"""  
 function gen_training_data(cond_name)
-    training_data = DataFrame()
+    training_data = DataFrame() #Instantiate training data frame
 
-    model = load_model(StandardModel, home_path * "models/iML1515.xml")
+    model = load_model(StandardModel, home_path * "models/iML1515.xml") #Load in FBA model from XML file
+    #Modify model to include pathway fluxes
     reaction = Reaction("pathway", Dict("M_g6p_c" => -1.0))
     reaction.lb = 0.0 #Must include lower bound to avoid reaction running backwards with -1000 flux
     add_reactions!(model, [reaction])
@@ -37,13 +41,18 @@ function gen_training_data(cond_name)
     medium[gc] = 10.0
     model.medium = medium
 
+    #Iterate through pathway flux range and simulate FBA
     for v_p in LinRange(0, 1, 500)
+        #FBA simulation with pathway flux constraints
         fluxes = flux_balance_analysis_dict(model, Tulip.Optimizer, modifications = [change_constraint("pathway", lb = v_p, ub = v_p)])
+        #Check if FBA was feasible
         if typeof(fluxes) != Nothing
             lam = fluxes["R_BIOMASS_Ec_iML1515_core_75p37M"]
             v_in = fluxes["R_TRE6PH"] + fluxes["R_PGMT"] + fluxes["R_HEX1"] + fluxes["R_AB6PGH"] + fluxes["R_TRE6PS"] + fluxes['R_FRULYSDG'] + fluxes['R_GLCptspp'] + fluxes['R_G6PP'] + fluxes['R_G6Pt6_2pp'] + fluxes['R_BGLA1']
+            #Save training data
             training_data = vcat(training_data, DataFrame("v_p" => [v_p], "v_in" => [v_in], "lam" => [lam], "feas" => [1]))
         else
+            #If infeasible, save training conditions ONLY
             training_data = vcat(training_data, DataFrame("v_p" => [v_p], "v_in" => [NaN], "lam" => [NaN], "feas" => [0]))
         end
     end
@@ -52,6 +61,9 @@ function gen_training_data(cond_name)
     return training_data
 end
 
+"""train_ml_models(data::DataFrame)
+        Trains ML surrogate models on a correctly formatted data set.
+""" 
 function train_ml_models(data)
     #Train ML models to predict feasibility
     replace!(data.v_in, NaN => -1)
@@ -149,7 +161,13 @@ function train_ml_models(data)
     return feas_model, v_in_model, lam_model
 end
 
-###OVERALL LOOP
+###SIMULATOR LOOP
+"""fba_loop(N::Integer, A_W::[Architecture, W_matrix], 
+                u0::[Float], warmup_flag::Boolean)
+
+        Runs simulator loop for N iterations with promoter strengths W and architecture, initial conditions u0 (determined from warmup)
+        Warmup flag determines whether to stop if FBA becomes infeasible.
+"""
 function fba_loop(N, A_W, u0, warmup_flag=0)
     #instantiate initial times
     deltat = 1/(60*60) #genetic timescale, seconds
