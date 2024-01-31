@@ -43,8 +43,12 @@ function gen_training_data(k)
     
     #Iterate through pathway flux range and simulate FBA
     for v_p in LinRange(0, 1, 500)
-        fluxes = flux_balance_analysis_dict(model, Tulip.Optimizer, modifications = [change_constraint("pathway", lb = v_p, ub = v_p), knockout("G_"*k)]) #FBA simulation with pathway flux constraints
-        #Check if FBA was feasible
+        if k == ""
+            fluxes = flux_balance_analysis_dict(model, Tulip.Optimizer, modifications = [change_constraint("pathway", lb = v_p, ub = v_p)]) #FBA simulation with pathway flux constraints
+        else
+            fluxes = flux_balance_analysis_dict(model, Tulip.Optimizer, modifications = [change_constraint("pathway", lb = v_p, ub = v_p), knockout("G_"*k)]) #FBA simulation with pathway flux constraints
+        end
+            #Check if FBA was feasible
         if typeof(fluxes) != Nothing
             lam = fluxes["R_BIOMASS_Ec_iML1515_core_75p37M"]
             v_in = - fluxes["R_IPDDI"] + fluxes["R_IPDPS"]
@@ -527,12 +531,14 @@ end
 """
 function knockouts_experiments()
     #Select only intermediate knockouts to run from genome-scale screen 
-    knockouts = ["b2779", "b3919", "b1779", "b2277", "b0432", "b0721"]
+    knockouts = ["b1779", "b2277", "b2779", "b0432", "b0721", "b3919"]
     save_path = "F:/additional_knockouts/"
     bo_iters = 1000
     sim_iters = 86400
     #Select W values (first enzyme only to start?)
-    W_values = [[10E-9,  0.000097, 0.000098, 0.000367],  [10E-8,  0.000097, 0.000098, 0.000367], [5E-7,  0.000097, 0.000098, 0.000367], [10E-7,  0.000097, 0.000098, 0.000367]]
+    #W_values = [[1.0E-8,  0.000097, 0.000098, 0.000367], [7.5E-9,  0.000097, 0.000098, 0.000367], [5E-9,  0.000097, 0.000098, 0.000367],  [2.5E-9,  0.000097, 0.000098, 0.000367], [10E-8,  0.000097, 0.000098, 0.000367], [7.5E-8,  0.000097, 0.000098, 0.000367], [5E-8,  0.000097, 0.000098, 0.000367], [2.5E-8,  0.000097, 0.000098, 0.000367],  [10E-7,  0.000097, 0.000098, 0.000367], [7.5E-7,  0.000097, 0.000098, 0.000367],  [5E-7,  0.000097, 0.000098, 0.000367]]
+    #W_values = [[1.0E-8,  0.000097, 0.000098, 0.000367], [2.5e-7,  0.000097, 0.000098, 0.000367],]
+    W_values = [[2.5e-7,  0.000097, 0.000098, 0.000367], [7.5e-7,  0.000097, 0.000098, 0.000367], [7.5e-9,  0.000097, 0.000098, 0.000367]]
     for W in W_values
         save_path = "F:/additional_knockouts/"
         run_knockouts(W, knockouts, bo_iters, sim_iters, save_path, true, true, true, false, true)
@@ -564,7 +570,7 @@ function burden_experiments()
 end
 
 ###RUNS ALL EXPERIMENTS - UNCOMMENT DESIRED EXPERIMENTS
-# knockouts_experiments()
+knockouts_experiments()
 # knockouts_experiments()
 # burden_experiments()
 println("Experiments completed!")
