@@ -173,11 +173,19 @@ end
         Helper function to read in serialized model objects from a filepath with a file suffix (usually knockout).
 """ 
 function read_ml_models(filepath, suffix)
-    v_in_model = deserialize(filepath*"v_in_model_"*suffix*".jls")
-    v_fpp_model = deserialize(filepath*"v_fpp_model_"*suffix*".jls")
-    v_ipp_model = deserialize(filepath*"v_ipp_model_"*suffix*".jls")
-    lam_model = deserialize(filepath*"lam_model_"*suffix*".jls")
-    feas_model = deserialize(filepath*"feas_model_"*suffix*".jls")
+    if suffix == ""
+        v_in_model = deserialize(filepath*"v_in_model.jls")
+        v_fpp_model = deserialize(filepath*"v_fpp_model.jls")
+        v_ipp_model = deserialize(filepath*"v_ipp_model.jls")
+        lam_model = deserialize(filepath*"lam_model.jls")
+        feas_model = deserialize(filepath*"feas_model.jls")
+    else
+        v_in_model = deserialize(filepath*"v_in_model_"*suffix*".jls")
+        v_fpp_model = deserialize(filepath*"v_fpp_model_"*suffix*".jls")
+        v_ipp_model = deserialize(filepath*"v_ipp_model_"*suffix*".jls")
+        lam_model = deserialize(filepath*"lam_model_"*suffix*".jls")
+        feas_model = deserialize(filepath*"feas_model_"*suffix*".jls")
+    end
     return v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model
 end
 
@@ -512,6 +520,23 @@ function run_knockouts(W, knockouts, bo_iters, sim_iters, alt_path, save_data=tr
 end
 
 #EXPERIMENTS
+###SINGLE SAMPLE RUN
+"""single_run_save()
+        Runs and saves out a single run of the simulator for sample data plotting
+"""
+function single_run_save()
+    W = [6.585457605722613e-6, 2.368373589538165e-2, 3.241284507744685e-2, 1.2e-2]
+    N = 24*60*60
+    u0 = [9.99, 9.99, 0., 0., 0., 0., 0., 0., 0., 0.]
+    filepath = "F:/models/beta_carotene/"
+    v_in_model, v_fpp_model, v_ipp_model, lam_model, feas_model = read_ml_models(filepath, "")
+    ode, fba = fba_loop(N, W, u0, 0, [feas_model, lam_model, v_in_model, v_fpp_model, v_ipp_model])
+    CSV.write("F:/plots/sample_bcar_ode_test.csv", ode)
+    CSV.write("F:/plots/sample_bcar_fba_test.csv", fba)
+end
+
+single_run_save()
+
 ###KNOCKOUTS SCREEN
 """knockouts_screen()
         Experiment wrapper function to run a list of knockouts for a genome-scale screen
@@ -538,7 +563,7 @@ function knockouts_experiments()
     #Select W values (first enzyme only to start?)
     #W_values = [[1.0E-8,  0.000097, 0.000098, 0.000367], [7.5E-9,  0.000097, 0.000098, 0.000367], [5E-9,  0.000097, 0.000098, 0.000367],  [2.5E-9,  0.000097, 0.000098, 0.000367], [10E-8,  0.000097, 0.000098, 0.000367], [7.5E-8,  0.000097, 0.000098, 0.000367], [5E-8,  0.000097, 0.000098, 0.000367], [2.5E-8,  0.000097, 0.000098, 0.000367],  [10E-7,  0.000097, 0.000098, 0.000367], [7.5E-7,  0.000097, 0.000098, 0.000367],  [5E-7,  0.000097, 0.000098, 0.000367]]
     #W_values = [[1.0E-8,  0.000097, 0.000098, 0.000367], [2.5e-7,  0.000097, 0.000098, 0.000367],]
-    W_values = [[2.5e-7,  0.000097, 0.000098, 0.000367], [7.5e-7,  0.000097, 0.000098, 0.000367], [7.5e-9,  0.000097, 0.000098, 0.000367]]
+    W_values = [[2.5e-7,  0.000097, 0.000098, 0.000367], [1.0e-7,  0.000097, 0.000098, 0.000367]]
     for W in W_values
         save_path = "F:/additional_knockouts/"
         run_knockouts(W, knockouts, bo_iters, sim_iters, save_path, true, true, true, false, true)
@@ -570,7 +595,8 @@ function burden_experiments()
 end
 
 ###RUNS ALL EXPERIMENTS - UNCOMMENT DESIRED EXPERIMENTS
-knockouts_experiments()
+# single_run_save()
+# knockouts_experiments()
 # knockouts_experiments()
 # burden_experiments()
 println("Experiments completed!")

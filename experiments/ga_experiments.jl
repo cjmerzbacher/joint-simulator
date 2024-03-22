@@ -168,7 +168,8 @@ end
         Runs simulator loop for N iterations with promoter strengths W and architecture, initial conditions u0 (determined from warmup)
         Warmup flag determines whether to stop if FBA becomes infeasible.
 """
-function fba_loop(N, A_W, u0, warmup_flag=0)
+function fba_loop(N, A_W, u0, warmup_flag=0, models=[v_in_model, lam_model, feas_model])
+    v_in_model, lam_model, feas_model = models
     #instantiate initial times
     deltat = 1/(60*60) #genetic timescale, seconds
     starttime = 0.
@@ -400,6 +401,28 @@ function burden(A, Ws, num_iters, bo_iters, sim_iters, save_suffix, save_data=tr
 end
 
 #EXPERIMENTS
+###SINGLE SAMPLE RUN
+"""single_run_save()
+        Runs and saves out a single run of the simulator for sample data plotting
+"""
+function single_run_save()
+    A = [[0, 0, 1], [0, 0, 1]] #open loop
+    W = [[2., 3.328086, 4.1e-6], [2., 5.070964, 2.2e-5]]
+    A_W = A, W
+    N = 10*60*60
+    u0 = [0.067, 0.280, 0., 0., 0.]
+    filepath = "F:/models/glucaric_acid/"
+    v_in_model = deserialize(filepath*"v_in_model.jls")
+    lam_model = deserialize(filepath*"lam_model.jls")
+    feas_model = deserialize(filepath*"feas_model.jls")
+    models = [v_in_model, lam_model, feas_model]
+    ode, fba = fba_loop(N, A_W, u0, 0, models)
+    CSV.write("F:/plots/sample_ga_ode_test.csv", ode)
+    CSV.write("F:/plots/sample_ga_fba_test.csv", fba)
+end
+
+single_run_save()
+
 ###MEDIUM CONDITIONS  
 function medium_conditions_experiments()
     #Read in and train ML models
