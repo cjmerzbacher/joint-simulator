@@ -2,6 +2,7 @@
 #To adapt, change home directory paths
 home_path = "/home/cjmerzbacher/joint-simulator/" #for villarica runs
 home_path = "C:/Users/Charlotte/OneDrive - University of Edinburgh/Documents/research/joint-simulator/"
+
 include(home_path * "models/glucaric_acid.jl")
 
 # Import required package
@@ -48,7 +49,7 @@ function gen_training_data(cond_name)
         #Check if FBA was feasible
         if typeof(fluxes) != Nothing
             lam = fluxes["R_BIOMASS_Ec_iML1515_core_75p37M"]
-            v_in = fluxes["R_TRE6PH"] + fluxes["R_PGMT"] + fluxes["R_HEX1"] + fluxes["R_AB6PGH"] + fluxes["R_TRE6PS"] + fluxes['R_FRULYSDG'] + fluxes['R_GLCptspp'] + fluxes['R_G6PP'] + fluxes['R_G6Pt6_2pp'] + fluxes['R_BGLA1']
+            v_in = fluxes["R_TRE6PH"] + fluxes["R_PGMT"] + fluxes["R_HEX1"] + fluxes["R_AB6PGH"] + fluxes["R_TRE6PS"] + fluxes["R_FRULYSDG"] + fluxes["R_GLCptspp"] + fluxes["R_G6PP"] + fluxes["R_G6Pt6_2pp"] + fluxes["R_BGLA1"]
             #Save training data
             training_data = vcat(training_data, DataFrame("v_p" => [v_p], "v_in" => [v_in], "lam" => [lam], "feas" => [1]))
         else
@@ -329,10 +330,10 @@ function bayesopt(alpha, num_iters, bo_iters, sim_iters, save_suffix, save_data=
         if i%5 == 0 
             if save_data
                 #Save out simulation data
-                CSV.write(home_path * "data/ga/bayesopt/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
-                CSV.write(home_path * "data/ga/bayesopt/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
-                CSV.write(home_path * "data/ga/bayesopt//"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
-                CSV.write(home_path * "data/ga/bayesopt/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
+                CSV.write("F:/bayesopt/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
+                CSV.write("F:/bayesopt/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
+                CSV.write("F:/bayesopt/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
+                CSV.write("F:/bayesopt/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
             end
         end
 
@@ -343,7 +344,7 @@ function bayesopt(alpha, num_iters, bo_iters, sim_iters, save_suffix, save_data=
 
     #Establish search space
     space = Dict(
-        :architecture => HP.Choice(:architecture, [[[0, 0, 1], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], [[0, 1, 0], [0, 0, 1]], [[0, 0, 1], [0, 0, 1]]]),
+        :architecture => HP.Choice(:architecture, [[[0, 1, 0], [1, 0, 0]], [[0, 0, 1], [1, 0, 0]], [[0, 1, 0], [0, 0, 1]], [[0, 0, 1], [0, 0, 1]]]),
         :k_ino1 => HP.Uniform(:k_ino1, 10E-7, 10E-3),
         :theta_ino1 => HP.Uniform(:theta_ino1, 10E-7, 10.),
         :k_miox => HP.Uniform(:k_miox, 10E-7, 10E-3),
@@ -354,10 +355,10 @@ function bayesopt(alpha, num_iters, bo_iters, sim_iters, save_suffix, save_data=
 
     if save_data
         #Save out simulation data
-        CSV.write(home_path * "data/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
-        CSV.write(home_path * "data/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
-        CSV.write(home_path * "data/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
-        CSV.write(home_path * "data/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
+        CSV.write("F:/bayesopt/"*save_suffix*"/sim_fba_data_"*save_suffix*".csv", sim_fba_data)
+        CSV.write("F:/bayesopt/"*save_suffix*"/sim_ode_data_"*save_suffix*".csv", sim_ode_data)
+        CSV.write("F:/bayesopt/"*save_suffix*"/sum_data_"*save_suffix*".csv", sum_data)
+        CSV.write("F:/bayesopt/"*save_suffix*"/bo_data_"*save_suffix*".csv", bo_data)
     end
 end
 
@@ -406,8 +407,10 @@ end
         Runs and saves out a single run of the simulator for sample data plotting
 """
 function single_run_save()
-    A = [[0, 0, 1], [0, 0, 1]] #open loop
-    W = [[2., 3.328086, 4.1e-6], [2., 5.070964, 2.2e-5]]
+    #A = [[0, 0, 1], [0, 0, 1]] #open loop
+    # W = [[2., 3.328086, 4.1e-6], [2., 5.070964, 2.2e-5]]
+    A = [[0, 1, 0], [1, 0, 0]] #dual control 
+    W = [[2., 3.328086, 2e-5], [2., 1, 2.2e-3]]
     A_W = A, W
     N = 10*60*60
     u0 = [0.067, 0.280, 0., 0., 0.]
@@ -421,59 +424,62 @@ function single_run_save()
     CSV.write("F:/plots/sample_ga_fba_test.csv", fba)
 end
 
-single_run_save()
+# ###MEDIUM CONDITIONS  
+# function medium_conditions_experiments()
+#     #Read in and train ML models
+#     growth_conditions_names = ["galactose", "gluconate", "xylose", "lalanine", "lactate", "pyruvate", "ribose", "glucose", "fructose", "sorbitol", "mannitol", "na-glucosamine", "glycerol", "succinate", "acetate"]
 
-###MEDIUM CONDITIONS  
-function medium_conditions_experiments()
-    #Read in and train ML models
-    growth_conditions_names = ["galactose", "gluconate", "xylose", "lalanine", "lactate", "pyruvate", "ribose", "glucose", "fructose", "sorbitol", "mannitol", "na-glucosamine", "glycerol", "succinate", "acetate"]
+#     p_aucs = []
+#     p_finals = []
+#     for g in growth_conditions_names
+#         println("Simulating growth conditions ", g)
+#         try
+#             data = CSV.read("F:/medium_conditions/training_"*g*".csv", DataFrame) 
 
-    p_aucs = []
-    p_finals = []
-    for g in growth_conditions_names
-        println("Simulating growth conditions ", g)
-        try
-            data = CSV.read(home_path * "data/ga/medium_conditions/training_data/training_"*g*".csv", DataFrame) 
+#             feas_model, v_in_model, lam_model = train_ml_models(data)
 
-            feas_model, v_in_model, lam_model = train_ml_models(data)
-            if lam_model == 0
-                print("No feasible FBA areas")
-                continue
-            end
+#             println(g)
+#             fba_df = DataFrame("v_dp" => [0.0])
+#             lam = predict(lam_model, fba_df)[1]
+#             println(lam)
+#             if lam_model == 0
+#                 print("No feasible FBA areas")
+#                 continue
+#             end
 
-            #Specify algorithm parameters
-            A = [[0, 0, 1], [0, 0, 1]] #open loop
-            W = [[2., 3.328086, 0.000041], [2., 5.070964, 0.000227]] #Optimal from MSc work - glucaric_acid_singlearch.csv
+#             #Specify algorithm parameters
+#             A = [[0, 0, 1], [0, 0, 1]] #open loop
+#             W = [[2., 3.328086, 0.000041], [2., 5.070964, 0.000227]] #Optimal from MSc work - glucaric_acid_singlearch.csv
 
-            #Use ML model to predict initial lam, v_in
-            fba_df = DataFrame("v_dp" => [0.0])
-            lam = predict(lam_model, fba_df)[1]
-            v_in = v_in_model(fba_df.v_dp')[1]
-            global p
-            p = [A, W, v_in, lam, feas_model, v_in_model, lam_model]
+#             #Use ML model to predict initial lam, v_in
+#             fba_df = DataFrame("v_dp" => [0.0])
+#             lam = predict(lam_model, fba_df)[1]
+#             v_in = v_in_model(fba_df.v_dp')[1]
+#             global p
+#             p = [A, W, v_in, lam, feas_model, v_in_model, lam_model]
 
-            ho = @hyperopt for i=10,
-                sampler = RandomSampler(), # This is default if none provided
-                g6p = LinRange(0., 0.281, 1000),
-                f6p = LinRange(0.,0.068,1000)
-                warmup_objective(g6p, f6p)
-            end
+#             ho = @hyperopt for i=10,
+#                 sampler = RandomSampler(), # This is default if none provided
+#                 g6p = LinRange(0., 0.281, 1000),
+#                 f6p = LinRange(0.,0.068,1000)
+#                 warmup_objective(g6p, f6p)
+#             end
 
-            initial_conditions, objective_min = ho.minimizer, ho.minimum
+#             initial_conditions, objective_min = ho.minimizer, ho.minimum
 
-            N = 86400
-            u0 = [initial_conditions[1], initial_conditions[2], 0., 0., 0.]
-            ode_data, fba_data = fba_loop(N, p, u0, 0)
-            push!(p_aucs, sum(ode_data.mi))
-            push!(p_finals, last(ode_data.mi))
+#             N = 86400
+#             u0 = [initial_conditions[1], initial_conditions[2], 0., 0., 0.]
+#             ode_data, fba_data = fba_loop(N, p, u0, 0)
+#             push!(p_aucs, sum(ode_data.mi))
+#             push!(p_finals, last(ode_data.mi))
 
-            CSV.write(home_path * "data/ga/medium_conditions/"*g*"_ode_data.csv", ode_data) #FIX THIS
-            CSV.write(home_path * "data/ga/medium_conditions/"*g*"_fba_data.csv", fba_data) #FIX THIS
-        catch 
-            println("Data file not written for condition "*g)
-        end
-    end
-end
+#             CSV.write(home_path * "data/ga/medium_conditions/"*g*"_ode_data.csv", ode_data) #FIX THIS
+#             CSV.write(home_path * "data/ga/medium_conditions/"*g*"_fba_data.csv", fba_data) #FIX THIS
+#         catch 
+#             println("Data file not written for condition "*g)
+#         end
+#     end
+# end
 
 ###BURDEN EXPERIMENTS
 function burden_experiments()
@@ -534,21 +540,35 @@ function bayesopt_experiments()
     num_iters = 100
     bo_iters = 1000
     sim_iters = 86400
-    bayesopt(0.01, num_iters, bo_iters, sim_iters, "bayesopt_01", true)
-    bayesopt(0.02, num_iters, bo_iters, sim_iters, "bayesopt_02", true)
-    bayesopt(0.03, num_iters, bo_iters, sim_iters, "bayesopt_03", true)
-    bayesopt(0.04, num_iters, bo_iters, sim_iters, "bayesopt_04", true)
-    bayesopt(0.05, num_iters, bo_iters, sim_iters, "bayesopt_05", true)
-    bayesopt(0.1, num_iters, bo_iters, sim_iters, "bayesopt_10", true)
-    bayesopt(0.15, num_iters, bo_iters, sim_iters, "bayesopt_15", true)
-    bayesopt(0.2, num_iters, bo_iters, sim_iters, "bayesopt_20", true)
-    bayesopt(0.25, num_iters, bo_iters, sim_iters, "bayesopt_25", true)
-    bayesopt(0.5, num_iters, bo_iters, sim_iters, "bayesopt_5", true)
-    bayesopt(0.75, num_iters, bo_iters, sim_iters, "bayesopt_75", true)
-    bayesopt(1.0, num_iters, bo_iters, sim_iters, "bayesopt_1", true)
+    bayesopt(0.0, num_iters, bo_iters, sim_iters, "bayesopt_0_2", true)
+    # bayesopt(0.01, num_iters, bo_iters, sim_iters, "bayesopt_01", true)
+    # bayesopt(0.02, num_iters, bo_iters, sim_iters, "bayesopt_02", true)
+    # bayesopt(0.03, num_iters, bo_iters, sim_iters, "bayesopt_03", true)
+    # bayesopt(0.04, num_iters, bo_iters, sim_iters, "bayesopt_04", true)
+    # bayesopt(0.05, num_iters, bo_iters, sim_iters, "bayesopt_05", true)
+    # bayesopt(0.1, num_iters, bo_iters, sim_iters, "bayesopt_10", true)
+    # bayesopt(0.15, num_iters, bo_iters, sim_iters, "bayesopt_15", true)
+    # bayesopt(0.2, num_iters, bo_iters, sim_iters, "bayesopt_20", true)
+    # bayesopt(0.25, num_iters, bo_iters, sim_iters, "bayesopt_25", true)
+    bayesopt(0.5, num_iters, bo_iters, sim_iters, models, "bayesopt_5_2", true)
+    # bayesopt(0.75, num_iters, bo_iters, sim_iters, "bayesopt_75", true)
+    bayesopt(1.0, num_iters, bo_iters, sim_iters, models, "bayesopt_1_2", true)
 end
 
+feas_model = deserialize(home_path * "models/ml_models/ga/feas_model.jls")
+lam_model = deserialize(home_path * "models/ml_models/ga/lam_model.jls")
+v_in_model = deserialize(home_path * "models/ml_models/ga/v_in_model.jls")
+println("All models read in successfully!")
+
+num_iters = 100
+bo_iters = 1000
+sim_iters = 10*60*60
+# bayesopt(0.0, num_iters, bo_iters, sim_iters, "bayesopt_0_2", true)
+bayesopt(0.5, num_iters, bo_iters, sim_iters, "bayesopt_5_2", true)
+bayesopt(1.0, num_iters, bo_iters, sim_iters, "bayesopt_1_2", true)
+
 ###RUNS ALL EXPERIMENTS
+# single_run_save()
 # burden_experiments()
 # bayesopt_experiments()
 # medium_conditions_experiments()

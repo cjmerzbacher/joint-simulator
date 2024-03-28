@@ -535,8 +535,6 @@ function single_run_save()
     CSV.write("F:/plots/sample_bcar_fba_test.csv", fba)
 end
 
-single_run_save()
-
 ###KNOCKOUTS SCREEN
 """knockouts_screen()
         Experiment wrapper function to run a list of knockouts for a genome-scale screen
@@ -574,7 +572,7 @@ end
 """burden_experiments()
         Experiment wrapper function to run a list of W values to compare burden and production
 """
-function burden_experiments()
+function burden_experiments(0)
     num_iters = 400
     bo_iters = 1000
     stable_iters = 500
