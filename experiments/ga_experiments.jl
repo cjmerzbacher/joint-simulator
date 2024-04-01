@@ -406,13 +406,12 @@ end
 """single_run_save()
         Runs and saves out a single run of the simulator for sample data plotting
 """
-function single_run_save()
+function single_run_save(N)
     #A = [[0, 0, 1], [0, 0, 1]] #open loop
     # W = [[2., 3.328086, 4.1e-6], [2., 5.070964, 2.2e-5]]
     A = [[0, 1, 0], [1, 0, 0]] #dual control 
     W = [[2., 3.328086, 2e-5], [2., 1, 2.2e-3]]
     A_W = A, W
-    N = 10*60*60
     u0 = [0.067, 0.280, 0., 0., 0.]
     filepath = "F:/models/glucaric_acid/"
     v_in_model = deserialize(filepath*"v_in_model.jls")
@@ -420,8 +419,8 @@ function single_run_save()
     feas_model = deserialize(filepath*"feas_model.jls")
     models = [v_in_model, lam_model, feas_model]
     ode, fba = fba_loop(N, A_W, u0, 0, models)
-    CSV.write("F:/plots/sample_ga_ode_test.csv", ode)
-    CSV.write("F:/plots/sample_ga_fba_test.csv", fba)
+    # CSV.write("F:/plots/sample_ga_ode_test.csv", ode)
+    # CSV.write("F:/plots/sample_ga_fba_test.csv", fba)
 end
 
 # ###MEDIUM CONDITIONS  
