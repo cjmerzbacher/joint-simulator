@@ -228,6 +228,11 @@ function fba_loop(N, A_W, u0, warmup_flag=0, models=[v_in_model, lam_model, feas
 end
 
 ###WARMUP ROUTINE
+"""warmup(num_iters::Integer, A_W::[Architectre, W_matrix]), f6p_max::Float, g6p_max::Float)
+        Bayesian warmup routine to determine initial conditions. Runs for num_iters and checks if the first 500 are feasible, otherwise adds a large penalty to the objective function
+        The maximum allowable f6p and g6p concentrations in the search space are f6p_max and g6p_max. 
+        ML surrogate models are provided as JLS objects.
+"""
 function warmup(num_iters, A_W, f6p_max = 0.281, g6p_max = 0.068)
     objectives = []
     f6ps = []
@@ -236,7 +241,7 @@ function warmup(num_iters, A_W, f6p_max = 0.281, g6p_max = 0.068)
     function warmup_objective(params)
         f6p, g6p = values(params)
         u0 = [g6p, f6p, 0., 0., 0.]
-        stable_iters = 10
+        stable_iters = 500
         ode_data, fba_data = fba_loop(stable_iters, A_W, u0, 1)
         objective = 1/(g6p + f6p)
         if nrow(ode_data) < stable_iters && nrow(fba_data) < stable_iters
@@ -261,6 +266,11 @@ function warmup(num_iters, A_W, f6p_max = 0.281, g6p_max = 0.068)
 end
 
 ###SINGLE FULL SIMULATION
+"""single_run(params::[Architecture, W_matrix], bo_iters::Integer, sim_iters::Integer)
+        Runs a single full simulation for a given promoter strength matrix W and a genetic control architecture. 
+        bo_iters is the number of initial condition values to try in the warmup routine
+        sim_iters is the number of iterations in the final simulation
+"""   
 function single_run(params, bo_iters, sim_iters)
     A, W = params
 
@@ -490,7 +500,7 @@ function burden_experiments()
     bo_iters = 1000
     sim_iters = 86400
 
-    scaled_plan = CSV.read(home_path * "data/ga/burden/"*arch*"_lhc.csv", DataFrame)
+    scaled_plan = CSV.read(home_path * "data/ga/"*arch*"_lhc.csv", DataFrame)
     bo_data, sim_fba_data, sim_ode_data, sum_data = burden(A, scaled_plan, num_iters, bo_iters, sim_iters, save_suffix, true)
 
     println("DUAL CONTROL")

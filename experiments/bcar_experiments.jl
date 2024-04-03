@@ -579,7 +579,7 @@ function burden_experiments(0)
     sim_iters = 86400
 
     ## No Control
-    scaled_plan = CSV.read(home_path * "beta_carotene/exp_data/lhc.csv", DataFrame)
+    scaled_plan = CSV.read(home_path * "data/bcar/lhc.csv", DataFrame)
     save_suffix="nc"
     arch = "nc"
     bo_data, sim_fba_data, sim_ode_data, sum_data = lhc_w_sweep(arch, num_iters, bo_iters, stable_iters, sim_iters, save_suffix, true, plan)
