@@ -39,19 +39,19 @@ Visualization code is written in Python 3.x and uses the following packages:
 2. models/glucaric_acid.jl Julia implementation of glucaric acid ODE model.
 3. models/iML1515.xml SBML model of iML1515 GSM, downloaded from BIGG models database.
 4. models/ml_models/ga/
-	a. feas_model.jls Logistic regression model for prediction of FBA feasibility for glucaric acid
-	b. lam_model.jls Linear regression model for prediction of growth rate for glucaric acid
-	c. v_in_model.jls Neural network model for prediction of boundary flux for glucaric acid
+	- feas_model.jls Logistic regression model for prediction of FBA feasibility for glucaric acid
+	- lam_model.jls Linear regression model for prediction of growth rate for glucaric acid
+	- v_in_model.jls Neural network model for prediction of boundary flux for glucaric acid
 5. models/ml_models/bcar/
-	a. feas_model.jls Logistic regression model for prediction of FBA feasibility for beta-carotene
-	b. lam_model.jls Linear regression model for prediction of growth rate for beta-carotene
-	c. v_in_model.jls Linear regressionmodel for prediction of boundary flux component 1 (influx to IPP) for beta-carotene
-	c. v_ipp_model.jls Linear regression model for prediction of boundary flux component 2 (efflux from IPP) for beta-carotene
-	c. v_fpp_model.jls Linear regression model for prediction of boundary flux component 3 (efflux from FPP) for beta-carotene
+	- feas_model.jls Logistic regression model for prediction of FBA feasibility for beta-carotene
+	- lam_model.jls Linear regression model for prediction of growth rate for beta-carotene
+	- v_in_model.jls Linear regressionmodel for prediction of boundary flux component 1 (influx to IPP) for beta-carotene
+	- v_ipp_model.jls Linear regression model for prediction of boundary flux component 2 (efflux from IPP) for beta-carotene
+	- v_fpp_model.jls Linear regression model for prediction of boundary flux component 3 (efflux from FPP) for beta-carotene
 
 ## Experiment code  
 1. experiments/bcar_experiments.jl Julia code to run all experiments with beta-carotene model.
-1. experiments/ga_experiments.jl Julia code to run all experiments with glucaric model. 
+2. experiments/ga_experiments.jl Julia code to run all experiments with glucaric model. 
 
 Note that filepaths are at the top of the files and must be changed when repo is cloned to allow code to find necessary data files. Functions expect appropriate folders have already been created with correct names. All functions have docstrings which give information about what they do and the necessary inputs (if any).
 
